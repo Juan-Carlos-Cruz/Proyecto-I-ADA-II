@@ -1,0 +1,252 @@
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+  animation: screen-enter 0.45s ease;
+}
+
+.screen-shell {
+  display: grid;
+  gap: 24px;
+}
+
+.step-indicator {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.step-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.step-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.hero-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr);
+  gap: 22px;
+}
+
+.hero-copy,
+.hero-panel,
+.quick-stat,
+.screen-header,
+.header-copy,
+.algo-panel,
+.loading-card,
+.cost-display {
+  display: grid;
+}
+
+.hero-copy {
+  gap: 18px;
+  align-content: start;
+}
+
+.hero-panel {
+  gap: 14px;
+  align-content: start;
+}
+
+.quick-stat {
+  gap: 4px;
+}
+
+.farm-header,
+.screen-header {
+  gap: 12px;
+}
+
+.hero-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-benefits,
+.legend-grid,
+.summary-strip,
+.action-row {
+  display: grid;
+  gap: 12px;
+}
+
+.hero-benefits {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.legend-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.welcome-grid,
+.config-layout,
+.result-layout {
+  display: grid;
+  gap: 22px;
+}
+
+.welcome-grid,
+.result-layout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.upload-card,
+.example-card,
+.result-secondary-card {
+  height: 100%;
+}
+
+.upload-zone,
+.result-subtitle,
+.status-pill,
+.result-order,
+.tablon-card-top,
+.tablon-stat,
+.algo-card-top,
+.btn,
+.format-pill,
+.api-badge {
+  display: flex;
+}
+
+.upload-zone {
+  gap: 12px;
+  flex-direction: column;
+}
+
+.upload-help {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.header-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.summary-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.config-layout {
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr);
+  align-items: start;
+}
+
+.tablon-scroll {
+  margin-top: 16px;
+  max-height: min(62vh, 780px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+  scrollbar-gutter: stable;
+}
+
+.tablon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 14px;
+}
+
+.tablon-card-top,
+.tablon-stat,
+.algo-card-top {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tablon-stat {
+  align-items: center;
+  gap: 14px;
+}
+
+.algo-panel {
+  gap: 18px;
+  height: 100%;
+}
+
+.algo-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.action-group,
+.action-row,
+.result-tools {
+  display: grid;
+  gap: 10px;
+}
+
+.result-tools {
+  margin-top: 18px;
+}
+
+.action-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.result-header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.result-subtitle {
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  align-items: center;
+  gap: 8px;
+}
+
+.loading {
+  display: none;
+  margin-bottom: 22px;
+}
+
+.loading-card {
+  place-items: center;
+  gap: 12px;
+  min-height: 180px;
+  text-align: center;
+}
+
+.result-layout {
+  margin-bottom: 22px;
+  align-items: stretch;
+}
+
+.cost-display {
+  gap: 8px;
+  align-content: center;
+  min-height: 100%;
+}
+
+.result-order {
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  align-items: center;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 14px;
+}

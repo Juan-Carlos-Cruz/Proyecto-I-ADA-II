@@ -1,0 +1,28 @@
+:root {
+  --bg-page: #e8dcc8;
+  --bg-page-deep: #d8c29d;
+  --surface-main: rgba(251, 247, 239, 0.92);
+  --surface-card: #fffdf8;
+  --surface-muted: #f3ebdc;
+  --surface-strong: #efe1c8;
+  --surface-accent: #e3f0d2;
+  --surface-warning: #fff0d8;
+  --border-soft: rgba(86, 68, 41, 0.12);
+  --border-strong: rgba(86, 68, 41, 0.22);
+  --text-primary: #2f2417;
+  --text-secondary: #675540;
+  --text-muted: #8a7a67;
+  --accent: #4e7a28;
+  --accent-dark: #395b1c;
+  --accent-soft: rgba(78, 122, 40, 0.18);
+  --warning: #a85d11;
+  --danger: #9a3b2a;
+  --shadow-soft: 0 22px 48px rgba(73, 52, 28, 0.12);
+  --shadow-card: 0 14px 28px rgba(73, 52, 28, 0.08);
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+  --font-sans: Aptos, "Trebuchet MS", "Segoe UI", sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", "SFMono-Regular", monospace;
+}

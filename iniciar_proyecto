@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PID_FILE="$ROOT_DIR/.backend.pid"
+CHILD_PID_FILE="$ROOT_DIR/.backend.child.pid"
+FRONTEND_FILE="$ROOT_DIR/riego_interfaz_frontend.html"
+BACKEND_BINARY="$ROOT_DIR/backend/bin/riego_backend"
+SUPERVISOR_SCRIPT="$ROOT_DIR/backend/scripts/supervisar_backend.sh"
+LOG_DIR="$ROOT_DIR/backend/logs"
+STDOUT_LOG="$LOG_DIR/backend.out.log"
+STDERR_LOG="$LOG_DIR/backend.err.log"
+PORT="${RIEGO_BACKEND_PORT:-8080}"
+AUTO_OPEN=1
+
+if [[ "${1:-}" == "--no-open" ]]; then
+  AUTO_OPEN=0
+fi
+
+healthcheck() {
+  python3 - "$PORT" <<'PY'
+import sys
+import urllib.request
+
+port = sys.argv[1]
+url = f"http://127.0.0.1:{port}/health"
+
+try:
+    with urllib.request.urlopen(url, timeout=1.2) as response:
+        sys.exit(0 if response.status == 200 else 1)
+except Exception:
+    sys.exit(1)
+PY
+}
+
+cleanup_pid() {
+  if [[ -f "$PID_FILE" ]]; then
+    local pid
+    pid="$(cat "$PID_FILE")"
+
+    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+      kill "$pid" 2>/dev/null || true
+      sleep 1
+    fi
+
+    rm -f "$PID_FILE"
+  fi
+
+  if [[ -f "$CHILD_PID_FILE" ]]; then
+    local child_pid
+    child_pid="$(cat "$CHILD_PID_FILE")"
+
+    if [[ -n "$child_pid" ]] && kill -0 "$child_pid" 2>/dev/null; then
+      kill "$child_pid" 2>/dev/null || true
+      sleep 1
+    fi
+
+    rm -f "$CHILD_PID_FILE"
+  fi
+}
+
+mkdir -p "$LOG_DIR"
+
+if healthcheck; then
+  echo "Backend ya estaba activo en http://127.0.0.1:$PORT"
+else
+  cleanup_pid
+
+  echo "Compilando backend provisional..."
+  make -C "$ROOT_DIR" backend
+
+  chmod +x "$SUPERVISOR_SCRIPT"
+
+  echo "Iniciando backend provisional..."
+  nohup "$SUPERVISOR_SCRIPT" "$PORT" >/dev/null 2>&1 < /dev/null &
+  SUPERVISOR_PID=$!
+  echo "$SUPERVISOR_PID" > "$PID_FILE"
+
+  READY=0
+  for _ in $(seq 1 40); do
+    if healthcheck; then
+      READY=1
+      break
+    fi
+    sleep 0.25
+  done
+
+  if [[ "$READY" -ne 1 ]]; then
+    echo "No se pudo iniciar el backend provisional." >&2
+    echo "Revisa: $STDERR_LOG" >&2
+    tail -n 40 "$STDERR_LOG" 2>/dev/null || true
+    exit 1
+  fi
+
+  echo "Backend activo en http://127.0.0.1:$PORT"
+fi
+
+echo "Frontend listo en:"
+echo "  $FRONTEND_FILE"
+echo "Logs del backend:"
+echo "  $STDOUT_LOG"
+echo "  $STDERR_LOG"
+
+if [[ "$AUTO_OPEN" -eq 1 ]] && command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "$FRONTEND_FILE" >/dev/null 2>&1 &
+fi

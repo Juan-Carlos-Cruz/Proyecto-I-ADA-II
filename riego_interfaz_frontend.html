@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plan de Riego Optimo</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+  <div class="app">
+    <div class="step-indicator">
+      <div class="step-node active">
+        <div class="step-dot active" id="dot0"></div>
+        <div class="step-copy">
+          <span class="step-kicker">Paso 1</span>
+          <span class="step-title">Carga</span>
+        </div>
+      </div>
+      <div class="step-node">
+        <div class="step-dot" id="dot1"></div>
+        <div class="step-copy">
+          <span class="step-kicker">Paso 2</span>
+          <span class="step-title">Configuracion</span>
+        </div>
+      </div>
+      <div class="step-node">
+        <div class="step-dot" id="dot2"></div>
+        <div class="step-copy">
+          <span class="step-kicker">Paso 3</span>
+          <span class="step-title">Resultado</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen active" id="screen-welcome">
+      <div class="screen-shell">
+        <div class="card hero-card">
+          <div class="hero-copy">
+            <span class="eyebrow">Dashboard de optimizacion agricola</span>
+            <div class="farm-header hero-header">
+              <span class="farm-icon">🌾</span>
+              <div>
+                <div class="farm-title">Plan de Riego Optimo</div>
+                <div class="farm-subtitle">Calcula el orden ideal para regar tu finca con una interfaz mas clara, visual y lista para conectarse al backend.</div>
+              </div>
+            </div>
+            <div class="hero-benefits">
+              <div class="benefit-chip">
+                <strong>Carga estructurada</strong>
+                Importa un archivo `.txt` con los tablones y sus parametros.
+              </div>
+              <div class="benefit-chip">
+                <strong>Compara estrategias</strong>
+                Evalua fuerza bruta, enfoque voraz o programacion dinamica.
+              </div>
+              <div class="benefit-chip">
+                <strong>Lee resultados rapido</strong>
+                Visualiza costo, secuencia y detalle por tablones.
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-panel">
+            <div class="hero-panel-title">Flujo de trabajo</div>
+            <div class="hero-panel-copy">La interfaz mantiene el recorrido actual de tres pasos, pero con una jerarquia mas fuerte para revisar datos, escoger algoritmo y leer el resultado con menos friccion.</div>
+            <div class="quick-stat">
+              <div class="quick-stat-value">3</div>
+              <div class="quick-stat-label">pasos guiados dentro del mismo panel</div>
+            </div>
+            <div class="quick-stat">
+              <div class="quick-stat-value">.txt</div>
+              <div class="quick-stat-label">entrada simple con `n`, `ts`, `tr`, `p`, `rp`</div>
+            </div>
+            <div class="quick-stat">
+              <div class="quick-stat-value">C++</div>
+              <div class="quick-stat-label">resultado preparado para integracion con backend</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-grid">
+          <div class="card upload-card">
+            <div class="section-label">Cargar finca</div>
+            <div class="section-title">Sube el archivo con los tablones</div>
+            <div class="section-copy">Selecciona el `.txt` de entrada y pasa directamente a la configuracion del algoritmo. El formato se mantiene simple para facilitar pruebas y demostraciones.</div>
+
+            <div class="upload-zone" role="button" tabindex="0" onclick="openFilePicker()" onkeydown="handleUploadKey(event)">
+              <div class="upload-icon">📄</div>
+              <div class="upload-title">Abrir archivo de entrada</div>
+              <div class="upload-text">Haz clic o presiona Enter para cargar la finca. La primera linea define `n` y cada fila siguiente usa el orden `ts,tr,p,rp`.</div>
+              <div class="upload-help">
+                <span class="format-pill">Linea 1: `n`</span>
+                <span class="format-pill">Lineas 2..n+1: `ts,tr,p,rp`</span>
+              </div>
+            </div>
+            <input type="file" id="fileInput" accept=".txt" onchange="loadFile(event)">
+          </div>
+
+          <div class="card example-card">
+            <div class="section-label">Formato esperado</div>
+            <div class="section-title">Referencia visual del archivo</div>
+            <div class="example-caption">Este ejemplo usa el contenido de `F1.txt` como guia rapida para comprobar la estructura antes de cargar una nueva finca.</div>
+            <pre class="file-preview">5
+10,3,4,0
+6,3,3,1
+2,2,1,0
+8,1,1,6
+10,4,2,6</pre>
+            <div class="legend-grid">
+              <div class="legend-item">
+                <strong>ts</strong>
+                <span>Tiempo maximo de supervivencia del tablon.</span>
+              </div>
+              <div class="legend-item">
+                <strong>tr</strong>
+                <span>Duracion del riego para ese tablon.</span>
+              </div>
+              <div class="legend-item">
+                <strong>p</strong>
+                <span>Peso o prioridad cuando el riego se retrasa.</span>
+              </div>
+              <div class="legend-item">
+                <strong>rp</strong>
+                <span>Dia ideal de inicio para lograr riego perfecto.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-config">
+      <div class="screen-shell">
+        <div class="screen-header">
+          <span class="header-kicker">Configuracion</span>
+          <div class="header-main">
+            <span class="farm-icon">🚜</span>
+              <div class="header-copy">
+                <div class="farm-title farm-title-compact">Configurar algoritmo</div>
+              <div class="farm-subtitle" id="finca-info">Finca cargada</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-strip">
+          <div class="metric-card">
+            <div class="metric-label">Tablones</div>
+            <div class="metric-value" id="farm-count">0</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Tiempo total de riego</div>
+            <div class="metric-value" id="farm-total-time">0 dias</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Rango de supervivencia</div>
+            <div class="metric-value" id="farm-survival-range">-</div>
+          </div>
+        </div>
+
+        <div class="config-layout">
+          <div class="card">
+            <div class="section-label">Tablones de la finca</div>
+            <div class="section-title">Estado de cada zona de riego</div>
+            <div class="section-copy">Revisa rapidamente la supervivencia, el tiempo de riego, la prioridad y el dia ideal de cada tablon antes de escoger la estrategia.</div>
+            <div class="tablon-scroll">
+              <div class="tablon-grid" id="tablon-grid"></div>
+            </div>
+          </div>
+
+          <div class="card algo-panel">
+            <div>
+              <div class="section-label">Algoritmos</div>
+              <div class="section-title">Escoge la estrategia de calculo</div>
+              <div class="section-copy">Cada opcion resalta un compromiso distinto entre costo computacional, velocidad y garantia de optimalidad.</div>
+            </div>
+
+            <div class="algo-grid">
+              <div class="algo-card" onclick="selectAlgo('roFB')" id="algo-roFB">
+                <div class="algo-card-top">
+                  <div class="algo-icon">💪</div>
+                  <div class="algo-badge">Exhaustivo</div>
+                </div>
+                <div class="algo-name">Fuerza Bruta</div>
+                <div class="algo-desc">Prueba todos los ordenes posibles y sirve como referencia exacta cuando `n` es pequeno.</div>
+              </div>
+
+              <div class="algo-card" onclick="selectAlgo('roV')" id="algo-roV">
+                <div class="algo-card-top">
+                  <div class="algo-icon">⚡</div>
+                  <div class="algo-badge">Rapido</div>
+                </div>
+                <div class="algo-name">Voraz</div>
+                <div class="algo-desc">Toma decisiones paso a paso para construir una solucion agil con bajo costo de ejecucion.</div>
+              </div>
+
+              <div class="algo-card" onclick="selectAlgo('roPD')" id="algo-roPD">
+                <div class="algo-card-top">
+                  <div class="algo-icon">🧠</div>
+                  <div class="algo-badge">Optimo</div>
+                </div>
+                <div class="algo-name">Programacion Dinamica</div>
+                <div class="algo-desc">Busca una solucion optima con mejor control del espacio de estados que la fuerza bruta.</div>
+              </div>
+            </div>
+
+            <div class="warning-box" id="fb-warning">
+              Fuerza bruta con `n` grande puede tardar mucho. Se recomienda principalmente para `n <= 12`.
+            </div>
+
+            <div class="action-group">
+              <button class="btn btn-primary btn-full" onclick="runAlgorithm()">Calcular plan de riego</button>
+              <button class="btn btn-full" onclick="goTo('welcome')">Cargar otra finca</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-result">
+      <div class="screen-shell">
+        <div class="screen-header result-header">
+          <div>
+            <span class="header-kicker">Resultado</span>
+            <div class="header-main">
+              <span class="farm-icon">💧</span>
+              <div class="header-copy">
+                <div class="farm-title farm-title-compact">Plan de riego</div>
+                <div class="result-subtitle">
+                  <span id="result-algo-name">Resultado pendiente</span>
+                  <span class="api-badge" id="result-algo-badge">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="status-pill">Panel de resultados</div>
+        </div>
+
+        <div class="loading card loading-card" id="loading">
+          <div class="spinner"></div>
+          <div class="loading-title">Consultando backend C++</div>
+          <div>Preparando el costo total, el orden de riego y el detalle por tablon.</div>
+        </div>
+
+        <div id="result-content">
+          <div class="result-layout">
+            <div class="card">
+              <div class="cost-display">
+                <div class="cost-label">Costo total de la solucion</div>
+                <div class="cost-value" id="result-cost">-</div>
+                <div class="cost-note">Se mostrara el valor acumulado retornado por el algoritmo seleccionado.</div>
+              </div>
+            </div>
+
+            <div class="card result-secondary-card">
+              <div class="section-label">Estado</div>
+              <div class="section-title">Lectura del resultado</div>
+              <div class="placeholder-note" id="result-state-text">Ejecuta un algoritmo para ver aqui un resumen del estado, o conecta el backend para poblar esta vista con datos reales.</div>
+              <div class="result-tools">
+                <button class="btn btn-download" id="download-result-btn" onclick="downloadResultTxt()" disabled>Descargar salida .txt</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-label">Orden de riego</div>
+            <div class="section-title">Secuencia propuesta</div>
+            <div class="section-copy">La linea de tiempo destaca el primer tablon de la secuencia y mantiene visible el recorrido completo.</div>
+            <div class="result-order" id="result-order">
+              <div class="empty-state">Aqui aparecera el orden optimo o heuristico cuando el backend devuelva la permutacion calculada.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-label">Detalle por tablon</div>
+            <div class="section-title">Inicio, caso y costo individual</div>
+            <div class="table-wrap">
+              <table class="detail-table">
+                <thead>
+                  <tr>
+                    <th>Tablon</th>
+                    <th>Inicio</th>
+                    <th>Caso</th>
+                    <th>Costo</th>
+                  </tr>
+                </thead>
+                <tbody id="detail-tbody">
+                  <tr class="empty-row">
+                    <td colspan="4">Todavia no hay detalle calculado.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-primary btn-full" onclick="goTo('config')">Probar otro algoritmo</button>
+          <button class="btn btn-full" onclick="goTo('welcome')">Nueva finca</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/config/app-config.js" defer></script>
+  <script src="assets/js/core/state.js" defer></script>
+  <script src="assets/js/services/file-parser.js" defer></script>
+  <script src="assets/js/services/api-client.js" defer></script>
+  <script src="assets/js/services/export-service.js" defer></script>
+  <script src="assets/js/ui/navigation.js" defer></script>
+  <script src="assets/js/ui/config-screen.js" defer></script>
+  <script src="assets/js/ui/result-screen.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+</body>
+</html>

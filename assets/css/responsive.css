@@ -1,0 +1,89 @@
+@media (max-width: 960px) {
+  .hero-card,
+  .config-layout,
+  .result-layout,
+  .welcome-grid,
+  .result-header {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-benefits,
+  .summary-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .result-header {
+    align-items: start;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 14px;
+  }
+
+  .app {
+    min-height: calc(100vh - 28px);
+    padding: 18px;
+    border-radius: 26px;
+  }
+
+  .step-indicator {
+    grid-template-columns: 1fr;
+  }
+
+  .step-node {
+    border-radius: 22px;
+  }
+
+  .hero-header,
+  .header-main {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .farm-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    font-size: 30px;
+  }
+
+  .hero-benefits,
+  .legend-grid,
+  .summary-strip,
+  .algo-grid,
+  .action-row {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-zone,
+  .tablon-card,
+  .algo-card,
+  .metric-card {
+    padding: 16px;
+  }
+
+  .tablon-scroll {
+    max-height: 52vh;
+    padding-right: 4px;
+  }
+
+  .file-preview {
+    font-size: 13px;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
