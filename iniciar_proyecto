@@ -33,6 +33,89 @@ except Exception:
 PY
 }
 
+backend_binary_is_compatible() {
+  if [[ ! -x "$BACKEND_BINARY" ]]; then
+    return 1
+  fi
+
+  if ! command -v file >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local description
+  description="$(file -b "$BACKEND_BINARY" 2>/dev/null || true)"
+  local kernel
+  kernel="$(uname -s)"
+  local machine
+  machine="$(uname -m)"
+
+  case "$kernel" in
+    Darwin)
+      [[ "$description" == *"Mach-O"* ]] || return 1
+      case "$machine" in
+        arm64)
+          [[ "$description" == *"arm64"* || "$description" == *"ARM64"* ]] || return 1
+          ;;
+        x86_64)
+          [[ "$description" == *"x86_64"* || "$description" == *"x86-64"* || "$description" == *"x86-64"* ]] || return 1
+          ;;
+      esac
+      ;;
+    Linux)
+      [[ "$description" == *"ELF"* ]] || return 1
+      case "$machine" in
+        x86_64)
+          [[ "$description" == *"x86-64"* || "$description" == *"x86_64"* ]] || return 1
+          ;;
+        aarch64|arm64)
+          [[ "$description" == *"aarch64"* || "$description" == *"ARM aarch64"* || "$description" == *"ARM64"* ]] || return 1
+          ;;
+      esac
+      ;;
+  esac
+
+  return 0
+}
+
+find_backend_pids() {
+  local pids=()
+
+  if command -v pgrep >/dev/null 2>&1; then
+    while IFS= read -r pid; do
+      [[ -n "$pid" ]] && pids+=("$pid")
+    done < <(pgrep -f "backend/bin/riego_backend --port $PORT" 2>/dev/null || true)
+
+    while IFS= read -r pid; do
+      [[ -n "$pid" ]] && pids+=("$pid")
+    done < <(pgrep -f "backend/scripts/supervisar_backend.sh $PORT" 2>/dev/null || true)
+  fi
+
+  if command -v lsof >/dev/null 2>&1; then
+    while IFS= read -r pid; do
+      [[ -n "$pid" ]] && pids+=("$pid")
+    done < <(lsof -ti tcp:"$PORT" -sTCP:LISTEN 2>/dev/null || true)
+  fi
+
+  printf '%s\n' "${pids[@]}" | awk 'NF { print }' | sort -u
+}
+
+write_pid_files_from_detection() {
+  local detected_pids
+  detected_pids="$(find_backend_pids || true)"
+
+  if [[ -n "$detected_pids" ]]; then
+    local first_pid
+    first_pid="$(printf '%s\n' "$detected_pids" | head -n 1)"
+    printf '%s\n' "$first_pid" > "$PID_FILE"
+
+    local last_pid
+    last_pid="$(printf '%s\n' "$detected_pids" | tail -n 1)"
+    if [[ -n "$last_pid" ]]; then
+      printf '%s\n' "$last_pid" > "$CHILD_PID_FILE"
+    fi
+  fi
+}
+
 cleanup_pid() {
   if [[ -f "$PID_FILE" ]]; then
     local pid
@@ -72,9 +155,13 @@ open_file() {
 mkdir -p "$LOG_DIR"
 
 if healthcheck; then
+  write_pid_files_from_detection
   echo "Backend ya estaba activo en http://127.0.0.1:$PORT"
 else
   cleanup_pid
+
+  echo "Limpiando binario anterior para forzar reconstruccion local..."
+  make -C "$ROOT_DIR" clean-backend >/dev/null 2>&1 || true
 
   echo "Compilando backend provisional..."
   make -C "$ROOT_DIR" backend

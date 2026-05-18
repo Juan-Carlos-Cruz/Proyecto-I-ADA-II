@@ -4,14 +4,48 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PID_FILE="$ROOT_DIR/.backend.pid"
 CHILD_PID_FILE="$ROOT_DIR/.backend.child.pid"
+PORT="${RIEGO_BACKEND_PORT:-8080}"
+
+find_backend_pids() {
+  local pids=()
+
+  if command -v pgrep >/dev/null 2>&1; then
+    while IFS= read -r pid; do
+      [[ -n "$pid" ]] && pids+=("$pid")
+    done < <(pgrep -f "backend/bin/riego_backend --port $PORT" 2>/dev/null || true)
+
+    while IFS= read -r pid; do
+      [[ -n "$pid" ]] && pids+=("$pid")
+    done < <(pgrep -f "backend/scripts/supervisar_backend.sh $PORT" 2>/dev/null || true)
+  fi
+
+  if command -v lsof >/dev/null 2>&1; then
+    while IFS= read -r pid; do
+      [[ -n "$pid" ]] && pids+=("$pid")
+    done < <(lsof -ti tcp:"$PORT" -sTCP:LISTEN 2>/dev/null || true)
+  fi
+
+  printf '%s\n' "${pids[@]}" | awk 'NF { print }' | sort -u
+}
+
+kill_pid_if_alive() {
+  local pid="$1"
+
+  if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+    kill "$pid" 2>/dev/null || true
+    sleep 1
+    return 0
+  fi
+
+  return 1
+}
 
 if [[ ! -f "$PID_FILE" ]]; then
-  echo "No hay PID registrado para el backend."
+  echo "No hay PID registrado para el backend. Buscando procesos activos en el puerto $PORT..."
 else
   PID="$(cat "$PID_FILE")"
 
-  if [[ -n "$PID" ]] && kill -0 "$PID" 2>/dev/null; then
-    kill "$PID"
+  if kill_pid_if_alive "$PID"; then
     echo "Supervisor del backend detenido (PID $PID)."
   else
     echo "El supervisor registrado ya no estaba activo."
@@ -21,10 +55,16 @@ fi
 if [[ -f "$CHILD_PID_FILE" ]]; then
   CHILD_PID="$(cat "$CHILD_PID_FILE")"
 
-  if [[ -n "$CHILD_PID" ]] && kill -0 "$CHILD_PID" 2>/dev/null; then
-    kill "$CHILD_PID" 2>/dev/null || true
+  if kill_pid_if_alive "$CHILD_PID"; then
     echo "Proceso backend detenido (PID $CHILD_PID)."
   fi
 fi
+
+while IFS= read -r PID; do
+  if [[ -n "$PID" ]] && kill -0 "$PID" 2>/dev/null; then
+    kill "$PID" 2>/dev/null || true
+    echo "Proceso relacionado detenido (PID $PID)."
+  fi
+done < <(find_backend_pids)
 
 rm -f "$PID_FILE" "$CHILD_PID_FILE"
