@@ -622,3 +622,485 @@
   color: var(--danger);
   font-weight: 800;
 }
+
+/* ── Benchmark screen ──────────────────────────────────────────────────── */
+
+.benchmark-picker-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(320px, 1.05fr);
+  gap: 18px;
+  margin-top: 12px;
+  align-items: stretch;
+}
+
+.benchmark-selection-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 236px;
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,242,231,0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.benchmark-selection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.benchmark-selection-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.benchmark-selection-copy {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.benchmark-selection-count {
+  min-width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  border-radius: 14px;
+  background: rgba(78, 122, 40, 0.1);
+  color: var(--accent-dark);
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid rgba(78, 122, 40, 0.16);
+}
+
+.benchmark-file-list {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  max-height: 176px;
+  overflow-y: auto;
+  padding-right: 6px;
+  align-content: start;
+}
+
+.benchmark-file-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.benchmark-file-list::-webkit-scrollbar-thumb {
+  background: rgba(86, 68, 41, 0.18);
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.benchmark-file-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.benchmark-file-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 6px 18px rgba(73, 52, 28, 0.04);
+}
+
+.benchmark-file-item .file-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.benchmark-file-item .file-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.benchmark-file-item .btn-remove {
+  background: none;
+  border: 1px solid rgba(154, 59, 42, 0.22);
+  border-radius: 8px;
+  color: var(--danger);
+  cursor: pointer;
+  padding: 4px 9px;
+  font-size: 14px;
+  line-height: 1;
+  transition: background 0.15s ease;
+}
+
+.benchmark-file-item .btn-remove:hover {
+  background: rgba(154, 59, 42, 0.08);
+}
+
+.benchmark-empty {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 14px;
+  border: 1px dashed rgba(86, 68, 41, 0.18);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  text-align: center;
+}
+
+.benchmark-chart-wrap {
+  margin-top: 14px;
+  overflow-x: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: #fffdf8;
+  padding: 8px 4px 4px;
+}
+
+.benchmark-chart-wrap svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 380px;
+}
+
+.benchmark-table-wrap {
+  max-height: min(58vh, 620px);
+  overflow: auto;
+}
+
+.benchmark-table-wrap::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.benchmark-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(86, 68, 41, 0.18);
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+}
+
+.benchmark-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.benchmark-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  background: var(--surface-card);
+  font-variant-numeric: tabular-nums;
+}
+
+.benchmark-table th,
+.benchmark-table td {
+  padding: 12px 16px;
+  text-align: right;
+  border-bottom: 1px solid rgba(86, 68, 41, 0.08);
+}
+
+.benchmark-table th:first-child,
+.benchmark-table td:first-child {
+  text-align: left;
+}
+
+.benchmark-table th {
+  background: #f6efe2;
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.benchmark-table tbody tr:nth-child(even) {
+  background: #fcf8f1;
+}
+
+.benchmark-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.benchmark-summary-block {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.benchmark-summary-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.benchmark-summary-wrap {
+  max-width: 520px;
+  border: 1px solid rgba(86, 68, 41, 0.08);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #fffdf8;
+}
+
+.benchmark-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.benchmark-summary-table th,
+.benchmark-summary-table td {
+  padding: 12px 16px;
+  text-align: right;
+  border-bottom: 1px solid rgba(86, 68, 41, 0.08);
+}
+
+.benchmark-summary-table th:first-child,
+.benchmark-summary-table td:first-child {
+  text-align: left;
+}
+
+.benchmark-summary-table th {
+  background: #f6efe2;
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.benchmark-summary-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.diff-better {
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+.diff-mid {
+  color: #8b5a11;
+  font-weight: 700;
+}
+
+.diff-worse {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.benchmark-action-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+  margin-top: 16px;
+}
+
+.benchmark-greedy-lab-card {
+  display: grid;
+  gap: 14px;
+}
+
+.benchmark-greedy-callout {
+  padding: 16px 18px;
+  border: 1px solid rgba(86, 68, 41, 0.1);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,238,226,0.88));
+}
+
+.benchmark-greedy-callout-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.benchmark-greedy-callout-copy {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.benchmark-greedy-actions {
+  display: grid;
+  grid-template-columns: minmax(260px, 420px);
+}
+
+.benchmark-greedy-best {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+
+.benchmark-greedy-metric {
+  padding: 14px 16px;
+  border: 1px solid rgba(86, 68, 41, 0.1);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.benchmark-greedy-metric-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.benchmark-greedy-metric-value {
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.benchmark-greedy-metric-copy {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.greedy-benchmark-table-wrap {
+  max-height: min(60vh, 680px);
+  overflow: auto;
+}
+
+.greedy-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(86, 68, 41, 0.08);
+  color: var(--text-secondary);
+}
+
+.greedy-status-badge.current {
+  background: rgba(78, 122, 40, 0.14);
+  color: var(--accent-dark);
+}
+
+.greedy-rank {
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.greedy-benchmark-table tbody tr.current-row {
+  background: rgba(227, 240, 210, 0.45);
+}
+
+.btn-icon-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn-icon-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(73, 52, 28, 0.08);
+}
+
+.benchmark-upload-zone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 22px;
+  border: 1.5px dashed rgba(78, 122, 40, 0.35);
+  border-radius: var(--radius-lg);
+  min-height: 236px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(227,240,210,0.52));
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.benchmark-upload-zone:hover {
+  border-color: rgba(78, 122, 40, 0.62);
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(227,240,210,0.72));
+}
+
+/* ── Tooltip del grafico benchmark ────────────────────────────────────── */
+
+.bm-tooltip {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(36, 27, 16, 0.93);
+  color: #f4ead8;
+  font-size: 12.5px;
+  line-height: 1.5;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  min-width: 160px;
+  max-width: min(220px, calc(100vw - 24px));
+}
+
+.bm-tt-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #f7f0e0;
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+
+.bm-tt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 1px 0;
+}
+
+.bm-tt-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.bm-tt-val {
+  font-weight: 700;
+  color: #fff;
+  margin-left: auto;
+}
+
+.bm-tt-sep {
+  margin: 5px 0 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}

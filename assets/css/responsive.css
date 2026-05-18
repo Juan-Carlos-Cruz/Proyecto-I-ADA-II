@@ -12,6 +12,14 @@
     grid-template-columns: 1fr;
   }
 
+  .benchmark-picker-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .benchmark-greedy-best {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .result-header {
     align-items: start;
   }
@@ -53,8 +61,20 @@
   .legend-grid,
   .summary-strip,
   .algo-grid,
-  .action-row {
+  .action-row,
+  .benchmark-action-row,
+  .benchmark-greedy-best,
+  .benchmark-greedy-actions {
     grid-template-columns: 1fr;
+  }
+
+  .benchmark-upload-zone,
+  .benchmark-selection-panel {
+    min-height: 210px;
+  }
+
+  .benchmark-file-list {
+    max-height: 220px;
   }
 
   .upload-zone,

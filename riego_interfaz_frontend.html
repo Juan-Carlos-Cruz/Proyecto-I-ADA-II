@@ -34,6 +34,13 @@
           <span class="step-title">Resultado</span>
         </div>
       </div>
+      <div class="step-node">
+        <div class="step-dot" id="dot3"></div>
+        <div class="step-copy">
+          <span class="step-kicker">Extra</span>
+          <span class="step-title">Comparativo</span>
+        </div>
+      </div>
     </div>
 
     <div class="screen active" id="screen-welcome">
@@ -62,6 +69,9 @@
                 Visualiza costo, secuencia y detalle por tablones.
               </div>
             </div>
+            <button class="btn" style="max-width:320px" onclick="goTo('benchmark')">
+              Analisis comparativo (varias fincas) &#x2192;
+            </button>
           </div>
 
           <div class="hero-panel">
@@ -303,6 +313,190 @@
         </div>
       </div>
     </div>
+
+    <div id="benchmark-tooltip" class="bm-tooltip" style="display:none;position:fixed;z-index:999;pointer-events:none"></div>
+
+    <div class="screen" id="screen-benchmark">
+      <div class="screen-shell">
+        <div class="screen-header">
+          <span class="header-kicker">Analisis Comparativo</span>
+          <div class="header-main">
+            <span class="farm-icon">📊</span>
+            <div class="header-copy">
+              <div class="farm-title farm-title-compact">DP vs Voraz</div>
+              <div class="farm-subtitle">Carga varias fincas y compara el costo optimo (PD) contra el heuristico (Voraz) a medida que crece n.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">Fincas</div>
+          <div class="section-title">Selecciona uno o mas archivos .txt</div>
+          <div class="section-copy">Cada archivo representa una finca. El analisis corre roPD y roV sobre cada una y las ordena por numero de tablones.</div>
+
+          <div class="benchmark-picker-layout">
+            <label class="benchmark-upload-zone" for="benchmarkFilesInput">
+              <div style="font-size:28px">📂</div>
+              <div style="font-weight:700;color:var(--text-primary)">Abrir archivos de finca</div>
+              <div style="color:var(--text-secondary);font-size:14px">Haz clic para seleccionar uno o varios .txt. Puedes agregar mas archivos despues.</div>
+            </label>
+
+            <div class="benchmark-selection-panel">
+              <div class="benchmark-selection-header">
+                <div>
+                  <div class="benchmark-selection-title">Archivos cargados</div>
+                  <div class="benchmark-selection-copy">La lista mantiene una altura fija y usa desplazamiento interno.</div>
+                </div>
+                <div class="benchmark-selection-count" id="benchmark-file-count">0</div>
+              </div>
+
+              <div class="benchmark-file-list" id="benchmark-file-list">
+                <div class="benchmark-empty">Sin fincas cargadas. Selecciona uno o mas archivos .txt.</div>
+              </div>
+            </div>
+          </div>
+
+          <input type="file" id="benchmarkFilesInput" accept=".txt" multiple
+                 style="display:none" onchange="loadBenchmarkFiles(event)">
+
+          <div class="benchmark-action-row">
+            <button class="btn btn-primary" id="benchmark-run-btn"
+                    onclick="executeBenchmark()" disabled>
+              Ejecutar analisis comparativo
+            </button>
+            <button class="btn-icon-secondary" onclick="RiegoBenchmarkScreen.clearFiles()">
+              Limpiar lista
+            </button>
+          </div>
+        </div>
+
+        <div class="loading card loading-card" id="benchmark-loading" style="display:none">
+          <div class="spinner"></div>
+          <div class="loading-title">Ejecutando benchmark en el backend C++</div>
+          <div>Corriendo roPD y roV en cada finca. Las fincas grandes pueden tardar varios segundos.</div>
+        </div>
+
+        <div id="benchmark-results" style="display:none">
+          <div class="card">
+            <div class="section-label">Grafico comparativo</div>
+            <div class="section-title">Costo DP vs Voraz por numero de tablones</div>
+            <div class="benchmark-chart-wrap">
+              <svg id="benchmark-chart" viewBox="0 0 620 320"></svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-label">Tabla de resultados</div>
+            <div class="section-title">Comparacion detallada por finca</div>
+            <div class="table-wrap benchmark-table-wrap">
+              <table class="benchmark-table">
+                <thead>
+                  <tr>
+                    <th>n</th>
+                    <th>costo_fb</th>
+                    <th>costo_dp</th>
+                    <th>costo_v</th>
+                    <th>diff</th>
+                    <th>%diff</th>
+                    <th>tiempo_dp</th>
+                    <th>tiempo_v</th>
+                  </tr>
+                </thead>
+                <tbody id="benchmark-tbody">
+                  <tr class="empty-row">
+                    <td colspan="8">Ejecuta el analisis para ver los resultados.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="benchmark-summary-block">
+              <div class="benchmark-summary-title">Resumen promedio de diferencias</div>
+              <div class="benchmark-summary-wrap">
+                <table class="benchmark-summary-table">
+                  <thead>
+                    <tr>
+                      <th>fincas</th>
+                      <th>promedio diff</th>
+                      <th>promedio %diff</th>
+                      <th>% casos exactos</th>
+                    </tr>
+                  </thead>
+                  <tbody id="benchmark-summary-tbody">
+                    <tr class="empty-row">
+                      <td colspan="4">Ejecuta el analisis para ver el resumen.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card benchmark-greedy-lab-card">
+          <div class="section-label">Laboratorio Voraz</div>
+          <div class="section-title">Comparar criterio principal y desempate</div>
+          <div class="section-copy">Usa las mismas fincas cargadas para probar varias combinaciones del caso Voraz y elegir la que mas se acerca al costo optimo de PD. Este bloque se habilita solo despues de ejecutar el analisis comparativo de arriba.</div>
+
+          <div class="benchmark-greedy-callout">
+            <div class="benchmark-greedy-callout-title">Que prueba este bloque</div>
+            <div class="benchmark-greedy-callout-copy">Se evalua el Voraz actual y varias variantes predefinidas. El ranking ordena por menor `%diff` promedio, luego por mas coincidencias exactas con el optimo.</div>
+          </div>
+
+          <div class="benchmark-greedy-actions">
+            <button class="btn" id="greedy-benchmark-run-btn"
+                    onclick="executeGreedyBenchmark()" disabled>
+              Evaluar criterios de Voraz
+            </button>
+          </div>
+        </div>
+
+        <div class="loading card loading-card" id="greedy-benchmark-loading" style="display:none">
+          <div class="spinner"></div>
+          <div class="loading-title">Probando variantes del criterio Voraz</div>
+          <div>Se comparan multiples combinaciones de criterio principal y desempate sobre las fincas cargadas.</div>
+        </div>
+
+        <div id="greedy-benchmark-results" style="display:none">
+          <div class="card">
+            <div class="section-label">Ranking Voraz</div>
+            <div class="section-title">Resultados por combinacion de criterios</div>
+
+            <div class="benchmark-greedy-best" id="greedy-benchmark-best">
+              <div class="benchmark-empty">Ejecuta el laboratorio para ver la mejor combinacion.</div>
+            </div>
+
+            <div class="table-wrap greedy-benchmark-table-wrap">
+              <table class="benchmark-table greedy-benchmark-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>principal</th>
+                    <th>desempate</th>
+                    <th>prom diff</th>
+                    <th>prom %diff</th>
+                    <th>exactos</th>
+                    <th>tiempo_v</th>
+                    <th>estado</th>
+                  </tr>
+                </thead>
+                <tbody id="greedy-benchmark-tbody">
+                  <tr class="empty-row">
+                    <td colspan="8">Ejecuta el laboratorio de Voraz para ver el ranking.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-primary" onclick="goTo('welcome')">Volver al inicio</button>
+          <button class="btn" onclick="RiegoBenchmarkScreen.clearFiles(); goTo('welcome')">Nueva sesion</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script src="assets/js/config/app-config.js" defer></script>
@@ -313,6 +507,7 @@
   <script src="assets/js/ui/navigation.js" defer></script>
   <script src="assets/js/ui/config-screen.js" defer></script>
   <script src="assets/js/ui/result-screen.js" defer></script>
+  <script src="assets/js/ui/benchmark-screen.js" defer></script>
   <script src="assets/js/app.js" defer></script>
 </body>
 </html>

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#include "benchmark_engine.hpp"
 #include "http_server.hpp"
 #include "json_utils.hpp"
 #include "placeholder_engine.hpp"
@@ -60,6 +61,45 @@ riego::http::Response handle_request(const riego::http::Request& request) {
           .status_code = 200,
           .status_text = "OK",
           .body = riego::construir_json_resultado(resultado),
+          .extra_headers = {},
+      };
+    } catch (const std::exception& error) {
+      return {
+          .status_code = 400,
+          .status_text = "Bad Request",
+          .body = riego::construir_json_error(error.what()),
+          .extra_headers = {},
+      };
+    }
+  }
+
+  if (request.method == "POST" && request.path == "/benchmark") {
+    try {
+      const riego::ResultadoBenchmark resultado = riego::ejecutar_benchmark(request.body);
+      return {
+          .status_code = 200,
+          .status_text = "OK",
+          .body = riego::construir_json_benchmark(resultado),
+          .extra_headers = {},
+      };
+    } catch (const std::exception& error) {
+      return {
+          .status_code = 400,
+          .status_text = "Bad Request",
+          .body = riego::construir_json_error(error.what()),
+          .extra_headers = {},
+      };
+    }
+  }
+
+  if (request.method == "POST" && request.path == "/benchmark-voraz") {
+    try {
+      const riego::ResultadoBenchmarkVoraz resultado =
+          riego::ejecutar_benchmark_voraz(request.body);
+      return {
+          .status_code = 200,
+          .status_text = "OK",
+          .body = riego::construir_json_benchmark_voraz(resultado),
           .extra_headers = {},
       };
     } catch (const std::exception& error) {

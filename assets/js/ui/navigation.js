@@ -3,7 +3,7 @@
     document.querySelectorAll(".screen").forEach(element => element.classList.remove("active"));
     document.getElementById("screen-" + screenName).classList.add("active");
 
-    const stepMap = { welcome: 0, config: 1, result: 2 };
+    const stepMap = { welcome: 0, config: 1, result: 2, benchmark: 3 };
 
     document.querySelectorAll(".step-dot").forEach((dot, index) => {
       dot.classList.toggle("active", index === stepMap[screenName]);

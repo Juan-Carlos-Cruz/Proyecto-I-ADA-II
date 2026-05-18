@@ -125,3 +125,6 @@ Si quieres levantar solo el backend manualmente:
 make backend
 ./backend/bin/riego_backend --port 8080
 ```
+
+# Generar archivos de entrada aleatorios
+python3 bateria_pruebas/generar_tests_aleatorios.py

@@ -57,6 +57,29 @@
     }
   }
 
+  async function loadBenchmarkFiles(event) {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    const state = global.RiegoState;
+    if (!state.benchmarkFincas) state.benchmarkFincas = [];
+
+    for (const file of files) {
+      try {
+        const raw = await global.RiegoFileService.readTextFile(file);
+        const parsed = global.RiegoFileService.parseFarmFileContent(raw);
+        state.benchmarkFincas.push({ name: file.name, raw, n: parsed.finca.length });
+      } catch (e) {
+        alert("No se pudo leer " + file.name + ": " + e.message);
+      }
+    }
+
+    event.target.value = "";
+    global.RiegoBenchmarkScreen.renderFileList();
+    global.RiegoBenchmarkScreen.invalidateAnalysisFlow();
+  }
+
   global.loadFile = loadFile;
   global.runAlgorithm = runAlgorithm;
+  global.loadBenchmarkFiles = loadBenchmarkFiles;
 })(window);
