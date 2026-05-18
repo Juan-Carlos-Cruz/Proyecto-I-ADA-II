@@ -59,6 +59,16 @@ cleanup_pid() {
   fi
 }
 
+# Cross-platform file opener: macOS uses 'open', Linux uses 'xdg-open'
+open_file() {
+  local target="$1"
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    open "$target" >/dev/null 2>&1 &
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$target" >/dev/null 2>&1 &
+  fi
+}
+
 mkdir -p "$LOG_DIR"
 
 if healthcheck; then
@@ -101,6 +111,6 @@ echo "Logs del backend:"
 echo "  $STDOUT_LOG"
 echo "  $STDERR_LOG"
 
-if [[ "$AUTO_OPEN" -eq 1 ]] && command -v xdg-open >/dev/null 2>&1; then
-  xdg-open "$FRONTEND_FILE" >/dev/null 2>&1 &
+if [[ "$AUTO_OPEN" -eq 1 ]]; then
+  open_file "$FRONTEND_FILE"
 fi

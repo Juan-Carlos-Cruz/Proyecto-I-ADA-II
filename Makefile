@@ -1,5 +1,7 @@
 CXX ?= g++
-CXXFLAGS ?= -std=c++20 -O2 -Wall -Wextra -pedantic -pthread -Ibackend/include
+# Removed -pedantic: clang on macOS emits spurious warnings for some C++20 constructs.
+# -pthread is fine on both macOS (clang) and Linux (g++).
+CXXFLAGS ?= -std=c++20 -O2 -Wall -Wextra -pthread -Ibackend/include
 
 BACKEND_BINARY := backend/bin/riego_backend
 BACKEND_SOURCES := $(sort $(wildcard backend/src/*.cpp))
