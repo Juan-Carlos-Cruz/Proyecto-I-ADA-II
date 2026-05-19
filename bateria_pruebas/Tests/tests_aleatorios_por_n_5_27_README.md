@@ -1,4 +1,4 @@
-# Tests aleatorios 5..20 tablones
+# Tests aleatorios 20..20 tablones
 
 Generados para comparar criterios voraces combinando:
 
@@ -12,17 +12,18 @@ Generados para comparar criterios voraces combinando:
 - rp: 0-ts-tr (día perfecto)
 
 ## Perfiles de tablones
-- critico (13%):    `ts = tr`        -> replica casos borde presentes en `Tests/tests`
-- urgente (35%):    holgura 1-3      -> poca ventana antes del limite
-- balanceado (30%): holgura 2-6      -> mezcla intermedia de casos
-- relajado (22%):   holgura 7-13     -> tablones con margen amplio
+- critico (10%):    `ts = tr`        -> replica casos borde presentes en `Tests/tests`
+- urgente (30%):    holgura 1-3      -> poca ventana antes del limite
+- balanceado (25%): holgura 2-6      -> mezcla intermedia de casos
+- relajado (20%):   holgura 7-13     -> tablones con margen amplio y cualquier prioridad (1-4)
+- largo\_plazo (15%): ts entre 20-100  -> casos donde hay tiempo de sobra para regar a muchos a tiempo
 
 ## Notas
 - Se usa `holgura = ts - tr` para que `rp` siempre quede en un rango valido.
 - El generador no copia literalmente `Tests/tests`, pero si replica su estilo general.
 
 ## Estructura
-- 16 carpetas: n05/ hasta n20/
+- 1 carpetas: n20/ hasta n20/
 - 5000 archivos por carpeta
 - Semilla fija: 20260513
-- Total: 80,000 archivos
+- Total: 5,000 archivos

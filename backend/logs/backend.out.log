@@ -192,3 +192,13 @@ Backend provisional detenido.
 Backend provisional escuchando en http://127.0.0.1:8080
 Backend provisional detenido.
 [2026-05-18 14:21:39] Supervisor detenido de forma controlada.
+[2026-05-18 23:35:05] Supervisor detenido de forma controlada.
+[2026-05-19 08:50:39] Iniciando backend en puerto 8080
+Backend provisional escuchando en http://127.0.0.1:8080
+Backend provisional detenido.
+[2026-05-19 10:21:05] Supervisor detenido de forma controlada.
+[2026-05-19 10:29:31] Iniciando backend en puerto 8080
+Backend provisional escuchando en http://127.0.0.1:8080
+Backend provisional detenido.
+[2026-05-19 15:53:11] Supervisor detenido de forma controlada.
+[2026-05-19 15:55:06] Iniciando backend en puerto 8080

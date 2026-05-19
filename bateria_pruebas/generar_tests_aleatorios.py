@@ -2,7 +2,7 @@ from __future__ import annotations
 import random
 from pathlib import Path
 
-MIN_TABLONES = 5
+MIN_TABLONES = 20
 MAX_TABLONES = 20
 CASOS_POR_N  = 5000
 SEED         = 20260513
@@ -35,8 +35,8 @@ def generar_tablon(rng: random.Random) -> tuple[int, int, int, int]:
        - validez de rp, que siempre se toma en 0..slack
     """
     perfil = rng.choices(
-        population=["critico", "urgente", "balanceado", "relajado"],
-        weights=[13, 35, 30, 22],
+        population=["critico", "urgente", "balanceado", "relajado", "largo_plazo"],
+        weights=[10, 30, 25, 20, 15],
         k=1
     )[0]
 
@@ -55,10 +55,15 @@ def generar_tablon(rng: random.Random) -> tuple[int, int, int, int]:
         slack = bounded_randint(rng, 2, min(6, ts - 1))
         p = bounded_randint(rng, 1, 4)
 
-    else:  # relajado
+    elif perfil == "relajado":
         ts = bounded_randint(rng, 10, 15)
         slack = bounded_randint(rng, 7, min(13, ts - 1))
-        p = bounded_randint(rng, 1, 2)
+        p = bounded_randint(rng, 1, 4)  # Modificado para permitir prioridades altas con mucha holgura
+
+    else:  # largo_plazo
+        ts = bounded_randint(rng, 20, 100)
+        slack = bounded_randint(rng, 10, min(50, ts - 1))
+        p = bounded_randint(rng, 1, 4)
 
     tr = ts - slack
     rp = bounded_randint(rng, 0, slack)
@@ -87,10 +92,11 @@ Generados para comparar criterios voraces combinando:
 - rp: 0-ts-tr (día perfecto)
 
 ## Perfiles de tablones
-- critico (13%):    `ts = tr`        -> replica casos borde presentes en `Tests/tests`
-- urgente (35%):    holgura 1-3      -> poca ventana antes del limite
-- balanceado (30%): holgura 2-6      -> mezcla intermedia de casos
-- relajado (22%):   holgura 7-13     -> tablones con margen amplio
+- critico (10%):    `ts = tr`        -> replica casos borde presentes en `Tests/tests`
+- urgente (30%):    holgura 1-3      -> poca ventana antes del limite
+- balanceado (25%): holgura 2-6      -> mezcla intermedia de casos
+- relajado (20%):   holgura 7-13     -> tablones con margen amplio y cualquier prioridad (1-4)
+- largo\_plazo (15%): ts entre 20-100  -> casos donde hay tiempo de sobra para regar a muchos a tiempo
 
 ## Notas
 - Se usa `holgura = ts - tr` para que `rp` siempre quede en un rango valido.
