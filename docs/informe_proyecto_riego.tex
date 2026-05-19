@@ -285,7 +285,7 @@ Sea \(n\) el n\'umero de tablones.
 \[
 \texttt{iota}=O(n).
 \]
-Adem\'as, cada invocaci\'on del comparador realiza un n\'umero constante de operaciones aritm\'eticas y comparaciones enteras; por tanto, cada comparaci\'on cuesta \(O(1)\). Como la biblioteca est\'andar garantiza que \texttt{std::sort} realiza \(O(n\log n)\) comparaciones, se obtiene la cota superior
+Adem\'as, cada invocaci\'on del comparador realiza un n\'umero constante de operaciones aritm\'eticas y comparaciones enteras; por tanto, cada comparaci\'on cuesta \(O(1)\). Como la biblioteca est\'andar garantiza que \texttt{std::sort}\footnote{V\'ease el borrador del est\'andar C++, secci\'on \href{https://eel.is/c++draft/sort}{[sort]}, donde se especifica la complejidad de \texttt{std::sort} como \(O(N\log N)\) comparaciones y proyecciones.} realiza \(O(n\log n)\) comparaciones, se obtiene la cota superior
 \[
 T_{\text{sort}}(n)=O(n\log n).
 \]
@@ -479,6 +479,32 @@ Para complementar el an\'alisis, se seleccionaron cuatro casos ilustrativos de l
 
 Si en lugar de mirar solo esos cuatro ejemplos se considera el conjunto completo de los 18 casos del repositorio que s\'i cuentan con entrada y salida de referencia, el panorama general queda m\'as claro. En esa colecci\'on total, el voraz coincidi\'o exactamente con el \'optimo en solo 1 caso, es decir, \(5.56\%\). La diferencia absoluta promedio fue de 32.56 unidades de costo y el exceso relativo promedio alcanz\'o \(16.23\%\). El caso m\'as desfavorable dentro de esa bater\'ia fue el \texttt{test12}, donde el voraz obtuvo 638 frente a un \'optimo de 526.
 
+En todo este an\'alisis, si se eval\'uan \(m\) fincas, para cada finca \(k\) se calculan dos cantidades:
+\[
+d_k=\lvert C_V^{(k)}-C^{\star(k)}\rvert
+\qquad\text{y}\qquad
+e_k=100\cdot \frac{d_k}{C^{\star(k)}}.
+\]
+Aqu\'i \(d_k\) es la diferencia absoluta de costo y \(e_k\) es esa misma diferencia, pero expresada en porcentaje respecto del \'optimo. La divisi\'on por \(C^{\star(k)}\) es importante porque normaliza el error seg\'un la escala real de cada finca: una desviaci\'on de 10 unidades no tiene el mismo peso si el costo \'optimo era 100 que si era 5000.
+
+Con esa notaci\'on:
+\[
+\text{diferencia promedio}=\frac{1}{m}\sum_{k=1}^{m} d_k,
+\qquad
+\text{\% diferencia promedio}=\frac{1}{m}\sum_{k=1}^{m} e_k.
+\]
+En este informe, \textbf{\% diferencia promedio} y \textbf{exceso relativo promedio} significan lo mismo.
+
+Por ejemplo, si en una finca el voraz obtiene costo \(110\) y el \'optimo es \(100\), entonces
+\[
+d_k=10
+\qquad\text{y}\qquad
+e_k=10\%.
+\]
+Si en otra finca el voraz tambi\'en se desv\'ia en 10 unidades, pero el \'optimo vale 1000, entonces el error relativo baja a \(1\%\). Este contraste muestra por qu\'e no basta con la diferencia absoluta: dos errores iguales en costo pueden tener importancias muy distintas dentro del problema.
+
+En palabras simples, la \textbf{diferencia promedio} responde a la pregunta ``\emph{cu\'antas unidades de costo se equivoca el voraz, en promedio?}''. En cambio, la \textbf{\% diferencia promedio} responde a ``\emph{qu\'e tan grave es esa equivocaci\'on respecto del mejor resultado posible?}''. Por eso conviene reportar ambas: la primera muestra el tama\~no bruto del error y la segunda permite juzgar si ese error es peque\~no o grande para la finca concreta.
+
 \paragraph{Validaci\'on emp\'irica con 5000 casos aleatorios de \(n=20\).}
 Adem\'as de la bater\'ia manual, se analiz\'o el bloque \texttt{n20} definido por la versi\'on actual del script \path{generar_tests_aleatorios.py}. En su estado actual, el generador produce \'unicamente instancias con \(n=20\), con un total de 5000 fincas y semilla fija \(20260513\). Cada tabl\'on se construye a partir de un perfil aleatorio:
 
@@ -617,7 +643,7 @@ Para justificar inequ\'ivocamente la selecci\'on de \(\frac{tr}{p}\) frente a in
   \small
   \begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
     \toprule
-    Criterio principal + desempate & \%diff promedio & Diff promedio & Coincidencias exactas \\
+    Criterio principal + desempate & \% diferencia promedio & Diferencia promedio & Coincidencias exactas \\
     \midrule
     \(\frac{tr}{p}\) + \(ts-tr\) & 1.97\% & 66.94 & 219/5000 \\
     \(\frac{tr}{p}\) + supervivencia & 1.99\% & 67.80 & 201/5000 \\
