@@ -1,0 +1,21 @@
+# Artefactos auxiliares de LaTeX
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# Cache de Python
+__pycache__/
+*.pyc
+
+# Artefactos generados por ./iniciar_proyecto
+/.backend.pid
+/.backend.child.pid
+/backend/logs/
+
+# Artefactos generados por generar_tests_aleatorios.py
+/bateria_pruebas/Tests/tests_aleatorios_por_n_5_27/
+/bateria_pruebas/Tests/tests_aleatorios_por_n_5_27_README.md

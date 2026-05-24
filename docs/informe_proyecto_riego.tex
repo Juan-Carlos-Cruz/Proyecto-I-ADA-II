@@ -1,0 +1,863 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage{placeins}
+\usepackage{tabularx}
+
+\geometry{margin=2.5cm}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue
+}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+
+\newcommand{\cost}[1]{c_{#1}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+  \thispagestyle{empty}
+  \begingroup
+  \setlength{\parskip}{0pt}
+  \centering
+  \vspace*{0.5cm}
+
+  {\large\scshape Universidad del Valle\par}
+  \vspace{0.12cm}
+  {\normalsize Facultad de Ingenier\'ia\par}
+  \vspace{0.12cm}
+  {\normalsize Escuela de Ingenier\'ia de Sistemas y Computaci\'on\par}
+  \vspace{0.12cm}
+  {\normalsize An\'alisis de Algoritmos II\par}
+
+  \vspace{1.4cm}
+
+  {\Large\bfseries Informe de Proyecto\par}
+  \vspace{0.35cm}
+  {\normalsize Proyecto de curso\par}
+  \vspace{0.45cm}
+  {\LARGE\bfseries Calculando el plan de riego \'optimo de una finca\par}
+  \vspace{0.5cm}
+  \rule{0.78\textwidth}{0.9pt}\par
+
+  \vspace{1.2cm}
+
+  \begin{minipage}{0.82\textwidth}
+    \centering
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{>{\bfseries}p{4cm}p{8.2cm}}
+      Estudiante: & Juan Carlos Cruz Mu\~noz (1824389) \\
+      Integrantes: & David Alejandro Enciso, Juan Esteban, Estiven \\
+      Profesores: & Juan Francisco D\'iaz Fr\'ias, Jes\'us Alexander Aranda \\
+      Monitor: & Samuel Galindo \\
+    \end{tabular}
+  \end{minipage}
+
+  \vfill
+
+  {\normalsize Cali, Colombia\par}
+  \vspace{0.15cm}
+  {\normalsize Mayo de 2026\par}
+  \endgroup
+\end{titlepage}
+
+\clearpage
+\hypersetup{pageanchor=true}
+\pagenumbering{arabic}
+\tableofcontents
+\newpage
+
+\section{Introducci\'on}
+
+Este informe desarrolla el problema del riego \'optimo planteado en el enunciado del proyecto de curso. El objetivo es construir y analizar tres enfoques para programar el orden de riego de los tablones de una finca: fuerza bruta, algoritmo voraz y programaci\'on din\'amica. Cada estrategia se estudia desde tres perspectivas: su idea algor\'itmica, su complejidad y su capacidad para producir una soluci\'on \'optima.
+
+La implementaci\'on del repositorio fue realizada en C++ y concentra la l\'ogica principal en el archivo \texttt{backend/src/algoritmos.cpp}. En ese archivo se encuentran las funciones \texttt{roFB}, \texttt{roV} y \texttt{roPD}, que corresponden respectivamente a los enfoques de fuerza bruta, voraz y programaci\'on din\'amica solicitados por el enunciado. Adem\'as, el proyecto incluye una interfaz para cargar archivos de entrada, ejecutar cualquiera de los algoritmos y revisar las salidas obtenidas.
+
+La dificultad principal del problema est\'a en que el costo no solo depende de qu\'e tabl\'on se riega, sino tambi\'en del instante exacto en que comienza su riego. Esto hace que el orden completo de la programaci\'on sea determinante. Como consecuencia, una decisi\'on aparentemente buena en el corto plazo puede afectar negativamente el costo global. Por eso resulta pertinente comparar una estrategia exhaustiva, una heur\'istica voraz y una formulaci\'on exacta mediante programaci\'on din\'amica.
+
+\section{El Problema del Riego \'Optimo}
+
+\subsection{Descripci\'on del Problema}
+
+Una finca est\'a compuesta por varios tablones y se dispone de un \'unico recurso m\'ovil de riego. Cada tabl\'on tiene cuatro atributos relevantes:
+
+\begin{itemize}
+  \item \textbf{Tiempo de supervivencia} (\(ts_i\)): n\'umero m\'aximo de d\'ias que puede pasar sin ser regado antes de sufrir afectaci\'on grave.
+  \item \textbf{Tiempo de riego} (\(tr_i\)): d\'ias requeridos para regar completamente el tabl\'on.
+  \item \textbf{Prioridad} (\(p_i\)): nivel de importancia del tabl\'on, entre 1 y 4.
+  \item \textbf{Tiempo de riego perfecto} (\(rp_i\)): instante ideal para iniciar el riego del tabl\'on.
+\end{itemize}
+
+Como solo existe un recurso de riego, en cada instante se debe decidir qu\'e tabl\'on atender primero. El problema consiste en hallar un orden de riego que minimice el costo total de afectaci\'on de los cultivos. La funci\'on de costo del enunciado penaliza tres situaciones:
+
+\begin{itemize}
+  \item si el tabl\'on se riega exactamente en su d\'ia perfecto, se obtiene el costo m\'as bajo;
+  \item si se riega antes de superar su l\'imite de supervivencia, pero no en el instante perfecto, el costo es moderado;
+  \item si se riega tarde, la penalizaci\'on aumenta y adem\'as se multiplica por la prioridad del tabl\'on.
+\end{itemize}
+
+En t\'erminos pr\'acticos, el problema es una variante de secuenciamiento con una funci\'on objetivo dependiente del tiempo de inicio de cada tarea. No basta con identificar tablones ``urgentes''; tambi\'en es importante reconocer que a veces conviene postergar un riego para acercarse al d\'ia perfecto o al menos no adelantar innecesariamente un tabl\'on cuyo costo disminuye si se atiende m\'as tarde.
+
+\subsection{Formalizaci\'on Matem\'atica}
+
+Sea una finca
+\[
+F = \langle T_0, T_1, \dots, T_{n-1} \rangle,
+\]
+donde cada tabl\'on se define como
+\[
+T_i = \langle ts_i, tr_i, p_i, rp_i \rangle,
+\]
+con \(0 \leq rp_i \leq ts_i - tr_i\).
+
+Una programaci\'on de riego es una permutaci\'on
+\[
+\Pi = \langle \pi_0, \pi_1, \dots, \pi_{n-1} \rangle
+\]
+de los \'indices \(\{0,1,\dots,n-1\}\), que indica el orden en el que se riegan los tablones.
+
+El instante de inicio del riego de cada tabl\'on depende de los tablones programados antes que \'el. Si \(t_i^\Pi\) representa el instante en que empieza a regarse el tabl\'on \(i\) bajo la programaci\'on \(\Pi\), entonces:
+\[
+t_{\pi_0}^{\Pi} = 0,
+\qquad
+t_{\pi_j}^{\Pi} = \sum_{k=0}^{j-1} tr_{\pi_k}
+\quad \text{para } j \geq 1.
+\]
+
+La contribuci\'on al costo del tabl\'on \(i\) al empezar a regarse en el instante \(t_i^\Pi\) es:
+\[
+CR_F^\Pi[i] =
+\begin{cases}
+ts_i - (t_i^\Pi + tr_i), & \text{si } t_i^\Pi = rp_i, \\[4pt]
+2\bigl(ts_i - (t_i^\Pi + tr_i)\bigr), & \text{si } t_i^\Pi \neq rp_i \text{ y } t_i^\Pi \leq ts_i - tr_i, \\[4pt]
+2p_i\bigl((t_i^\Pi + tr_i) - ts_i\bigr), & \text{en otro caso.}
+\end{cases}
+\]
+
+El costo total de la programaci\'on es:
+\[
+CR_F^\Pi = \sum_{i=0}^{n-1} CR_F^\Pi[i].
+\]
+
+El problema del riego \'optimo consiste entonces en encontrar una permutaci\'on \(\Pi^\star\) tal que:
+\[
+\Pi^\star = \argmin_{\Pi} CR_F^\Pi.
+\]
+
+\section{Soluci\'on Mediante Fuerza Bruta}
+
+La estrategia de fuerza bruta considera todas las posibles permutaciones de los \(n\) tablones. Para cada orden se simula el avance del tiempo, se calcula el costo de cada tabl\'on con la funci\'on anterior y finalmente se escoge la permutaci\'on de menor costo total.
+
+En la implementaci\'on del proyecto, la funci\'on \texttt{roFB} genera las permutaciones usando la rutina est\'andar \texttt{next\_permutation}. Se conserva el mejor orden visto hasta el momento y, al finalizar el recorrido exhaustivo, se vuelve a evaluar ese orden para construir la salida completa con detalles por tabl\'on.
+
+\subsection{Complejidad}
+
+El n\'umero de permutaciones posibles de \(n\) tablones es \(n!\). Evaluar una permutaci\'on requiere recorrer los \(n\) tablones una vez, por lo que el costo de evaluaci\'on es \(O(n)\). En consecuencia, el tiempo total es:
+\[
+O(n! \cdot n).
+\]
+
+El espacio auxiliar es \(O(n)\), ya que solo se almacenan la permutaci\'on actual, la mejor permutaci\'on encontrada y algunas variables escalares. Sin embargo, aunque el consumo de memoria es moderado, el crecimiento factorial del tiempo vuelve a esta soluci\'on inviable para instancias medianas. En la pr\'actica, resulta razonable solo para valores peque\~nos de \(n\).
+
+\subsection{Correcci\'on}
+
+La correcci\'on de la fuerza bruta es directa. El conjunto de soluciones factibles del problema es precisamente el conjunto de todas las permutaciones de los \(n\) tablones. Como el algoritmo recorre todas esas permutaciones y calcula exactamente su costo, necesariamente inspecciona tambi\'en la soluci\'on \'optima global. Al escoger al final la permutaci\'on de menor costo entre todas las evaluadas, el resultado devuelto coincide con la definici\'on del \'optimo del problema.
+
+Por tanto, la estrategia de fuerza bruta siempre produce la respuesta correcta.
+
+\section{Soluci\'on Mediante Algoritmo Voraz}
+
+\subsection{Descripci\'on de la Estrategia}
+
+La implementaci\'on voraz del proyecto corresponde a la funci\'on \texttt{roV}. El algoritmo recibe una finca
+\[
+F=\langle T_0,\dots,T_{n-1}\rangle
+\]
+y construye una permutaci\'on \(\Pi_V\) que define el orden de riego. Para cada tabl\'on \(i\) calcula el valor
+\[
+\rho_i=\frac{tr_i}{p_i},
+\]
+y luego ordena los tablones de menor a mayor seg\'un \(\rho_i\). Si dos tablones empatan en ese valor, se desempata usando el margen
+\[
+ts_i - tr_i,
+\]
+privilegiando primero el tabl\'on con menor margen.
+
+\paragraph{Intuici\'on.}
+Si dos tablones ya est\'an en el caso tard\'io, el costo de regar \(i\) en el instante \(t\) queda dominado por
+\[
+2p_i\bigl((t+tr_i)-ts_i\bigr).
+\]
+Aqu\'i aparecen dos fuerzas: un \(tr_i\) grande retrasa m\'as a los dem\'as, y un \(p_i\) grande hace m\'as caro ese retraso. Por eso el cociente \(\frac{tr_i}{p_i}\) intenta equilibrar duraci\'on y penalizaci\'on.
+
+\paragraph{Comparaci\'on local.}
+Supongamos ahora que dos tablones \(i\) y \(j\) ya est\'an en caso 3 en el instante \(t\). Si se riegan en el orden \(i \rightarrow j\), el costo conjunto es
+\[
+C(i\rightarrow j)=2p_i(t+tr_i-ts_i)+2p_j(t+tr_i+tr_j-ts_j).
+\]
+Si se riegan en el orden \(j \rightarrow i\), el costo conjunto es
+\[
+C(j\rightarrow i)=2p_j(t+tr_j-ts_j)+2p_i(t+tr_j+tr_i-ts_i).
+\]
+Al restar ambas expresiones se obtiene
+\[
+\Delta_{ij}=C(i\rightarrow j)-C(j\rightarrow i)=2(p_jtr_i-p_itr_j).
+\]
+Como \(\Delta_{ij}\) mide cu\'anto m\'as caro es elegir el orden \(i\rightarrow j\) en vez de \(j\rightarrow i\), ocurren tres casos:
+\begin{itemize}
+  \item si \(\Delta_{ij}<0\), el orden \(i\rightarrow j\) cuesta menos;
+  \item si \(\Delta_{ij}=0\), ambos \'ordenes cuestan lo mismo;
+  \item si \(\Delta_{ij}>0\), el orden \(j\rightarrow i\) cuesta menos.
+\end{itemize}
+Por tanto, conviene poner \(i\) antes que \(j\) exactamente cuando \(\Delta_{ij}\le 0\), es decir, cuando
+\[
+\frac{tr_i}{p_i}\leq \frac{tr_j}{p_j}.
+\]
+
+\paragraph{Conclusi\'on.}
+En el subproblema donde ambos tablones ya est\'an en penalizaci\'on tard\'ia, el mejor orden local se obtiene comparando \(\frac{tr}{p}\). Esa es la base formal del criterio principal del algoritmo. Si dos tablones empatan en ese cociente, se adelanta el de menor holgura \(ts_i-tr_i\), porque tiene menos margen para seguir esperando. Esto no prueba optimalidad global, pero s\'i hace m\'as coherente el comportamiento del voraz con la estructura del problema.
+
+Desde el punto de vista computacional, la estrategia tiene tres pasos:
+
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{clc}
+    \toprule
+    Paso & Operaci\'on & Complejidad \\
+    \midrule
+    1 & Calcular \(\frac{tr_i}{p_i}\) y \(ts_i-tr_i\) para cada tabl\'on & \(O(n)\) \\
+    2 & Ordenar por \(\frac{tr}{p}\) y desempatar por \(ts-tr\) & \(O(n\log n)\) \\
+    3 & Simular la permutaci\'on y calcular los costos & \(O(n)\) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Desglose operacional del algoritmo voraz.}
+\end{table}
+
+\subsubsection{Codificaci\'on e Implementaci\'on}
+
+La implementaci\'on de \texttt{roV} no reordena directamente los tablones, sino sus \'indices. Para simplificar la escritura, definamos
+\[
+\rho_i=\frac{tr_i}{p_i},
+\qquad
+h_i=ts_i-tr_i.
+\]
+Entonces, para dos tablones \(i\) y \(j\), el comparador usado por \texttt{sort} aplica estas reglas en orden:
+\begin{enumerate}
+  \item Si \(\rho_i<\rho_j\), entonces \(i\) va antes que \(j\).
+  \item Si \(\rho_i=\rho_j\), va primero el tabl\'on con menor holgura, es decir, el que tenga menor \(h\).
+  \item Si tambi\'en empatan en holgura, va primero el de menor \'indice original.
+\end{enumerate}
+Es decir, el algoritmo prioriza primero la raz\'on \(\frac{tr}{p}\), luego la holgura \(ts-tr\), y finalmente el \'indice para romper empates de manera determinista.
+
+Como el c\'odigo evita divisiones en punto flotante, la comparaci\'on principal no se implementa calculando cocientes decimales, sino mediante producto cruzado:
+\[
+\frac{tr_i}{p_i}<\frac{tr_j}{p_j}
+\iff
+tr_i\,p_j < tr_j\,p_i.
+\]
+
+\paragraph{Proposici\'on.}
+El paso de ordenamiento del algoritmo voraz cuesta \(\Theta(n\log n)\).
+
+\paragraph{Demostraci\'on.}
+Sea \(n\) el n\'umero de tablones.
+\[
+\texttt{iota}=O(n).
+\]
+Adem\'as, cada invocaci\'on del comparador realiza un n\'umero constante de operaciones aritm\'eticas y comparaciones enteras; por tanto, cada comparaci\'on cuesta \(O(1)\). Como la biblioteca est\'andar garantiza que \texttt{std::sort}\footnote{V\'ease el borrador del est\'andar C++, secci\'on \href{https://eel.is/c++draft/sort}{[sort]}, donde se especifica la complejidad de \texttt{std::sort} como \(O(N\log N)\) comparaciones y proyecciones.} realiza \(O(n\log n)\) comparaciones, se obtiene la cota superior
+\[
+T_{\text{sort}}(n)=O(n\log n).
+\]
+Para la cota inferior, basta observar que ordenar \(n\) elementos distintos exige distinguir entre las \(n!\) permutaciones posibles. Cada comparaci\'on solo tiene dos resultados, as\'i que despu\'es de \(h\) comparaciones solo pueden diferenciarse a lo sumo \(2^h\) casos. Por lo tanto, necesariamente debe cumplirse
+\[
+2^h \ge n!,
+\]
+y al tomar logaritmos se obtiene
+\[
+h \ge \log_2(n!).
+\]
+Ahora bien, en el producto \(n!=1\cdot 2\cdot \dots \cdot n\), los \'ultimos \(n/2\) factores son al menos \(n/2\). Entonces
+\[
+n! \ge \left(\frac{n}{2}\right)^{n/2},
+\]
+y por tanto
+\[
+h \ge \log_2(n!) \ge \frac{n}{2}\log_2\!\left(\frac{n}{2}\right)=\Omega(n\log n).
+\]
+En consecuencia, cualquier ordenamiento por comparaciones requiere \(\Omega(n\log n)\) comparaciones en el peor caso. Como ya se ten\'ia la cota superior \(O(n\log n)\), se concluye que
+\[
+T_{\text{sort}}(n)=\Theta(n\log n).
+\]
+Finalmente, como \texttt{evaluar\_orden} recorre la permutaci\'on una sola vez, su costo es \(O(n)\) y no modifica el orden asint\'otico total de \texttt{roV}.
+
+El siguiente fragmento muestra el n\'ucleo de esa implementaci\'on:
+
+\begin{lstlisting}[language=C++]
+vector<int> orden(cantidad_tablones);
+iota(orden.begin(), orden.end(), 0);
+
+sort(orden.begin(), orden.end(), [&](int indice_a, int indice_b) {
+    const Tablon& a = tablones[indice_a];
+    const Tablon& b = tablones[indice_b];
+
+    long long ratio_a = 1LL * a.tiempo_riego * b.prioridad;
+    long long ratio_b = 1LL * b.tiempo_riego * a.prioridad;
+    if (ratio_a != ratio_b) return ratio_a < ratio_b;
+
+    const int margen_a = a.tiempo_supervivencia - a.tiempo_riego;
+    const int margen_b = b.tiempo_supervivencia - b.tiempo_riego;
+    if (margen_a != margen_b) return margen_a < margen_b;
+
+    return indice_a < indice_b;
+});
+\end{lstlisting}
+
+\noindent Brevemente, cada bloque del fragmento cumple una funci\'on espec\'ifica:
+\begin{itemize}
+  \item \texttt{vector<int> orden(cantidad\_tablones);} reserva el arreglo donde se guardar\'a la permutaci\'on de \'indices que luego se ordenar\'a.
+  \item \texttt{iota(orden.begin(), orden.end(), 0);} inicializa ese arreglo como \(\langle 0,1,\dots,n-1\rangle\), es decir, con el orden original de los tablones.
+  \item \texttt{sort(...)} aplica el comparador voraz sobre esos \'indices para construir la permutaci\'on final.
+  \item \texttt{const Tablon\& a = tablones[indice\_a];} recupera el primer tabl\'on involucrado en la comparaci\'on.
+  \item \texttt{const Tablon\& b = tablones[indice\_b];} recupera el segundo tabl\'on involucrado en la comparaci\'on.
+  \item \texttt{ratio\_a} y \texttt{ratio\_b} implementan el producto cruzado \(tr_i p_j\) y \(tr_j p_i\), evitando dividir en punto flotante.
+  \item \texttt{if (ratio\_a != ratio\_b) return ratio\_a < ratio\_b;} decide el orden principal seg\'un la regla \(\frac{tr_i}{p_i}<\frac{tr_j}{p_j}\).
+  \item \texttt{margen\_a} y \texttt{margen\_b} calculan la holgura \(ts-tr\) de cada tabl\'on para usarla como segundo criterio.
+  \item \texttt{if (margen\_a != margen\_b) return margen\_a < margen\_b;} da prioridad al tabl\'on con menor margen cuando la raz\'on principal empata.
+  \item \texttt{return indice\_a < indice\_b;} resuelve el empate final conservando el orden por \'indice y hace determinista la salida del algoritmo.
+\end{itemize}
+
+\paragraph{Ejemplo.}
+Si \(T_i\) tiene \((tr_i,p_i)=(2,4)\) y \(T_j\) tiene \((tr_j,p_j)=(3,2)\), el c\'odigo no compara \(2/4\) con \(3/2\), sino
+\[
+2\cdot 2 = 4
+\quad\text{y}\quad
+3\cdot 4 = 12.
+\]
+Como \(4<12\), decide \(i \prec j\). Si dos tablones empatan en \(\frac{tr}{p}\), por ejemplo \((ts_i,tr_i,p_i)=(6,2,2)\) y \((ts_j,tr_j,p_j)=(9,3,3)\), entonces ambos tienen raz\'on \(1\) y el desempate pasa a la holgura:
+\[
+ts_i-tr_i = 4
+\quad<\quad
+ts_j-tr_j = 6.
+\]
+Por eso el algoritmo coloca primero a \(i\).
+
+\subsection{An\'alisis de Resultados}
+
+\paragraph{Aplicaci\'on a los ejemplos del enunciado.}
+Para las dos fincas de la Secci\'on 2.3 del enunciado, el criterio voraz produce la misma permutaci\'on:
+\[
+\Pi_V = \langle 0,1,3,2,4 \rangle.
+\]
+
+\paragraph{Ejemplo 1.}
+Para
+\[
+F_1=\langle\langle 10,3,4,0\rangle,\langle 6,3,3,1\rangle,\langle 2,2,1,0\rangle,\langle 8,1,1,6\rangle,\langle 10,4,2,5\rangle\rangle
+\]
+los valores relevantes son:
+
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabular}{ccccccc}
+    \toprule
+    Tabl\'on & \(ts\) & \(tr\) & \(p\) & \(rp\) & \(\frac{tr}{p}\) & \(ts-tr\) \\
+    \midrule
+    \(T_0\) & 10 & 3 & 4 & 0 & 0.75 & 7 \\
+    \(T_1\) & 6 & 3 & 3 & 1 & 1.00 & 3 \\
+    \(T_2\) & 2 & 2 & 1 & 0 & 2.00 & 0 \\
+    \(T_3\) & 8 & 1 & 1 & 6 & 1.00 & 7 \\
+    \(T_4\) & 10 & 4 & 2 & 5 & 2.00 & 6 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Valores usados por el voraz en la finca \(F_1\).}
+\end{table}
+
+El orden voraz es
+\[
+T_0 \rightarrow T_1 \rightarrow T_3 \rightarrow T_2 \rightarrow T_4.
+\]
+Al simular esa programaci\'on se obtiene:
+
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabular}{ccccc}
+    \toprule
+    Paso & Tabl\'on & \(t_{\text{inicio}}\) & Caso aplicado & Costo \\
+    \midrule
+    1 & \(T_0\) & 0 & caso 1: \(10-(0+3)\) & 7 \\
+    2 & \(T_1\) & 3 & caso 2: \(2(6-(3+3))\) & 0 \\
+    3 & \(T_3\) & 6 & caso 1: \(8-(6+1)\) & 1 \\
+    4 & \(T_2\) & 7 & caso 3: \(2\cdot1\cdot((7+2)-2)\) & 14 \\
+    5 & \(T_4\) & 9 & caso 3: \(2\cdot2\cdot((9+4)-10)\) & 12 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Evaluaci\'on detallada del voraz sobre \(F_1\).}
+\end{table}
+
+\[
+CR_{F_1}^{\Pi_V}=7+0+1+14+12=34.
+\]
+La programaci\'on \'optima por fuerza bruta es
+\[
+\Pi^\star=\langle 2,1,0,3,4\rangle
+\]
+con costo 20. La diferencia se explica porque el voraz posterga \(T_2\), que tiene holgura cero (\(ts_2-tr_2=0\)), y lo condena a caer en caso 3.
+
+\paragraph{Ejemplo 2.}
+Para
+\[
+F_2=\langle\langle 9,3,4,0\rangle,\langle 5,3,3,2\rangle,\langle 2,2,1,0\rangle,\langle 8,1,1,6\rangle,\langle 6,4,2,1\rangle\rangle
+\]
+se obtiene la misma permutaci\'on voraz. La evaluaci\'on queda:
+
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabular}{ccccc}
+    \toprule
+    Paso & Tabl\'on & \(t_{\text{inicio}}\) & Caso aplicado & Costo \\
+    \midrule
+    1 & \(T_0\) & 0 & caso 1: \(9-(0+3)\) & 6 \\
+    2 & \(T_1\) & 3 & caso 3: \(2\cdot3\cdot((3+3)-5)\) & 6 \\
+    3 & \(T_3\) & 6 & caso 1: \(8-(6+1)\) & 1 \\
+    4 & \(T_2\) & 7 & caso 3: \(2\cdot1\cdot((7+2)-2)\) & 14 \\
+    5 & \(T_4\) & 9 & caso 3: \(2\cdot2\cdot((9+4)-6)\) & 28 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Evaluaci\'on detallada del voraz sobre \(F_2\).}
+\end{table}
+
+\[
+CR_{F_2}^{\Pi_V}=6+6+1+14+28=55.
+\]
+El \'optimo es nuevamente
+\[
+\Pi^\star=\langle 2,1,0,3,4\rangle
+\]
+con costo 32. El patr\'on de falla es el mismo: un tabl\'on con margen nulo queda demasiado atr\'as por tener una prioridad baja y, por tanto, un cociente \(\frac{tr}{p}\) alto.
+
+\paragraph{Casos adicionales de la bater\'ia manual.}
+Para complementar el an\'alisis, se seleccionaron cuatro casos ilustrativos de la bater\'ia incluida en el repositorio. La idea de esta muestra no es agotar todos los tests, sino exhibir r\'apidamente que el comportamiento del voraz no es uniforme: en algunos casos coincide con el \'optimo y en otros se desv\'ia de \'el por un margen apreciable. La comparaci\'on entre costo voraz y costo \'optimo para esos cuatro ejemplos se resume en la tabla siguiente.
+
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{ccccc}
+    \toprule
+    Test & \(n\) & Costo \'optimo & Costo voraz & ¿Voraz = \'optimo? \\
+    \midrule
+    1  & 5  & 44   & 59   & No \\
+    5  & 6  & 193  & 193  & S\'i \\
+    12 & 10 & 526  & 638  & No \\
+    16 & 20 & 3758 & 3816 & No \\
+    \bottomrule
+  \end{tabular}
+  \caption{Casos adicionales tomados de la bater\'ia del proyecto.}
+\end{table}
+
+Si en lugar de mirar solo esos cuatro ejemplos se considera el conjunto completo de los 18 casos del repositorio que s\'i cuentan con entrada y salida de referencia, el panorama general queda m\'as claro. En esa colecci\'on total, el voraz coincidi\'o exactamente con el \'optimo en solo 1 caso, es decir, \(5.56\%\). La diferencia absoluta promedio fue de 32.56 unidades de costo y el exceso relativo promedio alcanz\'o \(16.23\%\). El caso m\'as desfavorable dentro de esa bater\'ia fue el \texttt{test12}, donde el voraz obtuvo 638 frente a un \'optimo de 526.
+
+En todo este an\'alisis, si se eval\'uan \(m\) fincas, para cada finca \(k\) se calculan dos cantidades:
+\[
+d_k=\lvert C_V^{(k)}-C^{\star(k)}\rvert
+\qquad\text{y}\qquad
+e_k=100\cdot \frac{d_k}{C^{\star(k)}}.
+\]
+Aqu\'i \(d_k\) es la diferencia absoluta de costo y \(e_k\) es esa misma diferencia, pero expresada en porcentaje respecto del \'optimo. La divisi\'on por \(C^{\star(k)}\) es importante porque normaliza el error seg\'un la escala real de cada finca: una desviaci\'on de 10 unidades no tiene el mismo peso si el costo \'optimo era 100 que si era 5000.
+
+Con esa notaci\'on:
+\[
+\text{diferencia promedio}=\frac{1}{m}\sum_{k=1}^{m} d_k,
+\qquad
+\text{\% diferencia promedio}=\frac{1}{m}\sum_{k=1}^{m} e_k.
+\]
+En este informe, \textbf{\% diferencia promedio} y \textbf{exceso relativo promedio} significan lo mismo.
+
+Por ejemplo, si en una finca el voraz obtiene costo \(110\) y el \'optimo es \(100\), entonces
+\[
+d_k=10
+\qquad\text{y}\qquad
+e_k=10\%.
+\]
+Si en otra finca el voraz tambi\'en se desv\'ia en 10 unidades, pero el \'optimo vale 1000, entonces el error relativo baja a \(1\%\). Este contraste muestra por qu\'e no basta con la diferencia absoluta: dos errores iguales en costo pueden tener importancias muy distintas dentro del problema.
+
+En palabras simples, la \textbf{diferencia promedio} responde a la pregunta ``\emph{cu\'antas unidades de costo se equivoca el voraz, en promedio?}''. En cambio, la \textbf{\% diferencia promedio} responde a ``\emph{qu\'e tan grave es esa equivocaci\'on respecto del mejor resultado posible?}''. Por eso conviene reportar ambas: la primera muestra el tama\~no bruto del error y la segunda permite juzgar si ese error es peque\~no o grande para la finca concreta.
+
+\paragraph{Validaci\'on emp\'irica con 5000 casos aleatorios de \(n=20\).}
+Adem\'as de la bater\'ia manual, se analiz\'o el bloque \texttt{n20} definido por la versi\'on actual del script \path{generar_tests_aleatorios.py}. En su estado actual, el generador produce \'unicamente instancias con \(n=20\), con un total de 5000 fincas y semilla fija \(20260513\). Cada tabl\'on se construye a partir de un perfil aleatorio:
+
+\begin{table}[ht]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{5pt}
+  \renewcommand{\arraystretch}{1.16}
+  \begin{tabularx}{\textwidth}{
+    >{\raggedright\arraybackslash}p{2.2cm}
+    >{\centering\arraybackslash}p{5.2cm}
+    >{\raggedright\arraybackslash}X
+  }
+    \toprule
+    Perfil & Regla de generaci\'on & Intenci\'on del perfil \\
+    \midrule
+    \textbf{Cr\'itico} & \(ts \in [5,15]\), \(slack=0\), \(p \in [1,4]\) & Fuerza casos borde donde el tabl\'on no admite espera. \\
+    \addlinespace[3pt]
+    \textbf{Urgente} & \(ts \in [5,10]\), \(slack \in [1,3]\), \(p \in [3,4]\) & Modela tablones con poca holgura y alta prioridad. \\
+    \addlinespace[3pt]
+    \textbf{Balanceado} & \(ts \in [7,13]\), \(slack \in [2,6]\), \(p \in [1,4]\) & Representa el comportamiento intermedio m\'as frecuente. \\
+    \addlinespace[3pt]
+    \textbf{Relajado} & \(ts \in [10,15]\), \(slack \in [7,13]\), \(p \in [1,4]\) & Introduce holgura amplia, permitiendo ``falsos urgentes'' al no restringir la prioridad. \\
+    \addlinespace[3pt]
+    \textbf{Largo plazo} & \(ts \in [20,100]\), \(slack \in [10,50]\), \(p \in [1,4]\) & A\~nade tablones que rompen la homogeneidad temporal, dificultando la visi\'on miope del algoritmo. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Reglas de construcci\'on del generador aleatorio actualizado.}
+\end{table}
+
+\paragraph{Variable de control.}
+Aqu\'i se usa expl\'icitamente la variable
+\[
+slack = ts-tr,
+\]
+porque esa magnitud controla la urgencia real del tabl\'on. En todos los perfiles se cumple adem\'as que \(tr=ts-slack\) y \(rp \in [0,slack]\).
+
+\paragraph{Distribuci\'on nominal del generador.}
+Cada tabl\'on se genera de forma independiente con las siguientes probabilidades:
+\begin{itemize}
+  \item \(10\%\) cr\'itico;
+  \item \(30\%\) urgente;
+  \item \(25\%\) balanceado;
+  \item \(20\%\) relajado;
+  \item \(15\%\) largo plazo.
+\end{itemize}
+
+\paragraph{Por qu\'e el generador es v\'alido.}
+La generaci\'on siempre preserva las restricciones del enunciado:
+\[
+ts \geq tr,\qquad 1 \leq p \leq 4,\qquad 0 \leq rp \leq ts-tr.
+\]
+Adem\'as, por construcci\'on:
+\begin{itemize}
+  \item se cubren simult\'aneamente casos borde (\(ts=tr\)), tablones urgentes, balanceados y relajados;
+  \item no se copian literalmente los casos manuales del proyecto;
+  \item se obtiene una familia sint\'etica coherente con el enunciado y con el estilo de datos observado en la bater\'ia real.
+\end{itemize}
+
+\paragraph{Por qu\'e se fij\'o \(n=20\).}
+Esta decisi\'on tiene dos ventajas metodol\'ogicas:
+\begin{itemize}
+  \item a\'isla el comportamiento del criterio voraz en un tama\~no ya exigente, sin mezclarlo con el efecto del crecimiento de \(n\);
+  \item todav\'ia permite resolver todas las instancias por programaci\'on din\'amica, de modo que cada salida de \texttt{roV} se compara contra un \'optimo exacto.
+\end{itemize}
+
+\paragraph{Tama\~no y validez de la muestra.}
+El bloque usa 5000 fincas de \(n=20\), es decir, 100000 tablones. Esto hace que el experimento no dependa de unas pocas observaciones afortunadas y, al mismo tiempo, permite comparar cada salida de \texttt{roV} contra un \'optimo exacto calculado por programaci\'on din\'amica.
+
+\begin{itemize}
+  \item Bajo la distribuci\'on nominal, cada finca contiene en promedio 2.6 tablones cr\'iticos, 7 urgentes, 6 balanceados y 4.4 relajados.
+  \item La probabilidad te\'orica de que una finca contenga al menos un tabl\'on de cada tipo es muy alta: \(93.83\%\) para cr\'iticos, \(99.98\%\) para urgentes, \(99.92\%\) para balanceados y \(99.31\%\) para relajados.
+  \item En el bloque real \texttt{n20}, las frecuencias observadas quedaron pr\'acticamente pegadas a las nominales: \(13.019\%\) cr\'iticos, \(34.971\%\) urgentes, \(29.959\%\) balanceados y \(22.051\%\) relajados.
+  \item Adem\'as, el \(94.30\%\) de las fincas contiene al menos un tabl\'on con holgura cero, m\'as del \(99.8\%\) contiene al menos un urgente o balanceado, y el \(100\%\) contiene al menos un tabl\'on con holgura menor o igual a 3 y uno de prioridad 3 o 4.
+\end{itemize}
+
+En conjunto, esto muestra que la muestra no est\'a sesgada hacia instancias ``f\'aciles'' y que el voraz se enfrenta a conflictos reales entre prioridad, holgura, tiempo de riego y d\'ia perfecto.
+
+\paragraph{Conclusi\'on metodol\'ogica.}
+En s\'intesis, el experimento es emp\'iricamente s\'olido porque el generador respeta las restricciones formales, cubre perfiles distintos en proporciones controladas e introduce trampas heur\'isticas relevantes; adem\'as, usa semilla fija y compara siempre contra el costo \'optimo real. Bajo esas condiciones, los resultados no dependen de coincidencias fortuitas.
+
+El resultado del criterio actual sobre ese bloque fue:
+
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{lc}
+    \toprule
+    M\'etrica & Resultado en 5000 casos con \(n=20\) \\
+    \midrule
+    Coincidencias exactas con el \'optimo & \(219/5000 = 4.38\%\) \\
+    Diferencia absoluta promedio & 66.94 \\
+    Exceso relativo promedio frente al \'optimo & \(1.97\%\) \\
+    Peor diferencia absoluta observada & 382 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Resumen emp\'irico del criterio voraz actual sobre el bloque oficial actualizado \texttt{n20}.}
+\end{table}
+
+Estos resultados muestran una idea central: el voraz coincide pocas veces con el orden \'optimo exacto (\(4.38\%\)), pero el da\~no econ\'omico promedio que produce sigue siendo peque\~no (\(1.97\%\)). Es decir, falla con frecuencia en la permutaci\'on exacta, pero normalmente no se aleja mucho del costo \'optimo.
+
+Para entender de d\'onde sale esa diferencia, se realiz\'o un \textbf{experimento de aislamiento} por perfil. En lugar de mezclar tipos de tablones, se generaron bloques de 5000 fincas compuestas al \(100\%\) por un solo perfil: cr\'itico, urgente, balanceado, largo plazo o relajado, manteniendo la misma semilla fija \(20260513\) usada por el generador oficial. La tabla siguiente muestra c\'omo cambia el rendimiento del voraz en cada uno de esos escenarios puros:
+
+\begin{table}[!htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabularx}{\textwidth}{
+    >{\raggedright\arraybackslash}X
+    >{\centering\arraybackslash}p{2.5cm}
+    >{\centering\arraybackslash}p{2.6cm}
+    >{\centering\arraybackslash}p{4.0cm}
+  }
+    \toprule
+    Perfil exclusivo en la Finca (\(n=20\)) & Diferencia promedio & Exceso relativo \% & Tasa de coincidencia exacta \\
+    \midrule
+    Fincas \(100\%\) Cr\'iticos & 0.00 & 0.00\% & 5000/5000 (100\%) \\
+    Fincas \(100\%\) Urgentes & 2.83 & 0.05\% & 1735/5000 ($\approx$ 35\%) \\
+    Fincas \(100\%\) Balanceados & 11.13 & 0.35\% & 533/5000 ($\approx$ 11\%) \\
+    Fincas \(100\%\) Largo plazo & 180.25 & 1.41\% & 25/5000 ($\approx$ 0.5\%) \\
+    Fincas \(100\%\) Relajados & 62.37 & 5.53\% & 4/5000 ($\approx$ 0.1\%) \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Rendimiento del experimento paralelo aislando la heur\'istica contra 5000 fincas de exclusividad pura por perfil.}
+\end{table}
+\FloatBarrier
+
+Estas m\'etricas explican bien lo ocurrido en el bloque real de 5000 casos (\(219/5000\)). En perfiles r\'igidos, el voraz funciona muy bien: es perfecto en el caso \(100\%\) Cr\'itico y en el caso \(100\%\) Urgente mantiene un exceso relativo de apenas \(0.05\%\), con 1735 coincidencias exactas sobre 5000.
+
+A medida que aumenta la holgura, la coincidencia exacta cae con fuerza: baja a 533/5000 en \(100\%\) Balanceado, a 25/5000 en \(100\%\) Largo plazo y a 4/5000 en \(100\%\) Relajado. Sin embargo, incluso cuando deja de acertar en la permutaci\'on exacta, el costo adicional sigue siendo moderado en balanceado y largo plazo, y solo se vuelve claramente m\'as visible en relajado. En resumen, el voraz falla sobre todo al ordenar tareas muy posponibles, pero se mantiene fuerte donde retrasarse realmente cuesta caro.
+
+\paragraph{Sustento emp\'irico del criterio elegido.}
+Para justificar inequ\'ivocamente la selecci\'on de \(\frac{tr}{p}\) frente a intuiciones alternativas que a priori podr\'ian parecer razonables (como atender lo m\'as urgente, de mayor prioridad o el d\'ia perfecto), se ejecut\'o un laboratorio comparando distintas combinaciones implementadas en \texttt{backend/src/voraz\_criterios.cpp}. El ranking sobre el nuevo conjunto mixto de 5000 instancias arroj\'o los siguientes resultados:
+
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+    \toprule
+    Criterio principal + desempate & \% diferencia promedio & Diferencia promedio & Coincidencias exactas \\
+    \midrule
+    \(\frac{tr}{p}\) + \(ts-tr\) & 1.97\% & 66.94 & 219/5000 \\
+    \(\frac{tr}{p}\) + supervivencia & 1.99\% & 67.80 & 201/5000 \\
+    \(\frac{tr}{p}\) + prioridad alta & 2.15\% & 71.30 & 165/5000 \\
+    Supervivencia + \(\frac{tr}{p}\) & $\approx 14.8\%$ & $> 700.0$ & 0/5000 \\
+    Prioridad alta + \(\frac{tr}{p}\) & $\approx 8.4\%$ & $> 400.0$ & 0/5000 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Comparativo manteniendo \(\frac{tr}{p}\) como criterio principal frente a priorizar otros atributos.}
+\end{table}
+
+Los datos dejan una conclusi\'on simple: cuando \(\frac{tr}{p}\) deja de ser el criterio principal, el desempe\~no empeora de forma marcada. En cambio, cuando se mantiene como criterio base y se desempata con la holgura \(ts-tr\), se obtienen los mejores resultados. Por eso, dentro de las heur\'isticas r\'apidas evaluadas, esta combinaci\'on resulta la m\'as robusta para el problema.
+
+\subsection{Complejidad y Correcci\'on}
+
+\paragraph{Complejidad.}
+El algoritmo voraz ejecuta dos fases:
+\begin{enumerate}
+  \item ordena los \(n\) tablones seg\'un el criterio \(\frac{tr}{p}\) con desempate por holgura;
+  \item eval\'ua la permutaci\'on resultante.
+\end{enumerate}
+La primera fase domina el costo total, por lo que la complejidad temporal es
+\[
+O(n \log n).
+\]
+La simulaci\'on posterior solo agrega un recorrido lineal \(O(n)\). El espacio auxiliar tambi\'en es \(O(n)\), debido al arreglo de \'indices.
+
+\paragraph{Correctitud del algoritmo voraz.}
+El algoritmo voraz no siempre da la respuesta correcta al problema, entendiendo por respuesta correcta una programaci\'on de riego con costo \'optimo. Aunque el problema s\'i tiene subestructura \'optima, el criterio local usado por el algoritmo no garantiza la propiedad de escogencia voraz. Por esta raz\'on, escoger en cada paso el tabl\'on que parece m\'as conveniente seg\'un \(\frac{tr}{p}\) no asegura necesariamente obtener la mejor soluci\'on global.
+
+En consecuencia, el algoritmo debe entenderse como una heur\'istica eficiente: puede coincidir con el \'optimo en ciertos tipos de instancias, especialmente cuando el retraso domina el costo, pero no es exacto para el caso general. A continuaci\'on se justifica esta afirmaci\'on mediante la subestructura \'optima del problema, un contraejemplo a la escogencia voraz y el an\'alisis de los casos en los que el criterio tiende a acertar o fallar.
+
+\paragraph{Subestructura \'optima.}
+S\'i se cumple. Sea
+\[
+\Pi^\star=\langle \pi_0^\star,\pi_1^\star,\dots,\pi_{n-1}^\star\rangle
+\]
+una programaci\'on \'optima. Si fijamos el primer tabl\'on \(\pi_0^\star\), entonces el resto de la programaci\'on siempre comienza despu\'es de \(tr_{\pi_0^\star}\). Por tanto, el sufijo
+\[
+\langle \pi_1^\star,\dots,\pi_{n-1}^\star\rangle
+\]
+debe ser \'optimo para ese subproblema residual. Si no lo fuera, existir\'ia otro orden sobre esos mismos tablones con menor costo; al reemplazar solo el sufijo en \(\Pi^\star\), se obtendr\'ia una programaci\'on total m\'as barata, contradicci\'on.
+
+Por ejemplo, si una soluci\'on \'optima fuera \(\langle 2,0,1,3\rangle\), entonces el sufijo \(\langle 0,1,3\rangle\) debe ser el mejor posible una vez regado \(T_2\). Si existiera un sufijo mejor, como \(\langle 1,0,3\rangle\), entonces \(\langle 2,1,0,3\rangle\) costar\'ia menos que la supuesta soluci\'on \'optima. Por lo tanto, el problema s\'i tiene subestructura \'optima.
+
+\paragraph{Propiedad de escogencia voraz.}
+No se cumple en general. Consid\'erese la finca con dos tablones
+\[
+T_0=\langle 10,2,1,0\rangle,\qquad T_1=\langle 5,3,4,0\rangle.
+\]
+Como
+\[
+\frac{tr_0}{p_0}=2.00,\qquad \frac{tr_1}{p_1}=0.75,
+\]
+el criterio voraz elige primero a \(T_1\). Sin embargo:
+
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabular}{lcc}
+    \toprule
+    Permutaci\'on & C\'alculo & Costo total \\
+    \midrule
+    \(\langle 1,0\rangle\) & \(T_1: 5-(0+3)=2,\; T_0:2(10-(3+2))=10\) & 12 \\
+    \(\langle 0,1\rangle\) & \(T_0: 10-(0+2)=8,\; T_1:2(5-(2+3))=0\) & 8 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Contraejemplo a la propiedad de escogencia voraz.}
+\end{table}
+
+La soluci\'on \'optima comienza por \(T_0\), no por el tabl\'on de menor \(\frac{tr}{p}\). Esto demuestra formalmente que no existe garant\'ia de que una soluci\'on \'optima empiece con la escogencia voraz.
+
+\paragraph{Lectura conjunta de la demostraci\'on formal y la evidencia experimental.}
+El algoritmo voraz no es exacto para el problema general porque el costo combina tres reg\'imenes distintos. En particular, los casos 1 y 2 premian en ocasiones esperar, mientras que el caso 3 castiga fuertemente el retraso. Esa mezcla rompe la propiedad de escogencia voraz. Sin embargo, el argumento de intercambio presentado en la Secci\'on 4.1 sigue siendo v\'alido en el r\'egimen tard\'io y explica por qu\'e \(\frac{tr}{p}\) funciona razonablemente bien en la pr\'actica.
+
+\paragraph{Cu\'ando tiende a acertar y cu\'ando falla.}
+Con base en la teor\'ia y en los experimentos del proyecto, el criterio tiende a acertar mejor en perfiles donde retrasarse es peligroso y la urgencia temporal domina la decisi\'on:
+
+\begin{itemize}
+  \item \textbf{Cr\'itico:} aqu\'i el voraz acierta casi siempre, porque los tablones no tienen holgura (\(ts-tr=0\)) y postergar cualquiera de ellos es inmediatamente costoso; en ese entorno, ordenar por \(\frac{tr}{p}\) refleja muy bien la presi\'on real del problema.
+  \item \textbf{Urgente:} tambi\'en suele comportarse bien, porque la holgura es peque\~na y los tablones est\'an cerca del r\'egimen tard\'io; por eso las decisiones locales del criterio se parecen bastante a las decisiones del \'optimo.
+  \item \textbf{Instancias con tablones cortos y de prioridad alta:} el cociente \(\frac{tr}{p}\) favorece precisamente esos tablones, de modo que el algoritmo protege primero tareas que son r\'apidas de regar y costosas de retrasar.
+  \item \textbf{Casos favorables al d\'ia perfecto:} a veces el orden voraz coincide accidentalmente con un buen \(rp\); cuando eso ocurre, el costo mejora aun sin que el criterio haya usado \(rp\) de forma expl\'icita.
+\end{itemize}
+
+Por el contrario, el criterio falla m\'as cuando predominan perfiles con mucha holgura, porque all\'i no siempre conviene regar primero lo que parece m\'as rentable seg\'un \(\frac{tr}{p}\):
+
+\begin{itemize}
+  \item \textbf{Relajado:} estos tablones tienen holgura amplia, as\'i que el algoritmo pierde precisi\'on al decidir cu\'al conviene posponer; por eso aqu\'i baja mucho la coincidencia exacta con el \'optimo.
+  \item \textbf{Largo plazo:} este perfil rompe la homogeneidad temporal del problema; como sus tablones pueden esperar bastante, el criterio local deja de capturar bien el orden global m\'as conveniente.
+  \item \textbf{Balanceado:} se ubica en una zona intermedia; no es tan adverso como relajado o largo plazo, pero ya no es tan r\'igido como cr\'itico o urgente, por lo que el voraz acierta menos.
+  \item \textbf{Instancias donde \(rp\) es decisivo:} el criterio principal no incorpora el d\'ia perfecto, de modo que puede producir un orden econ\'omicamente razonable pero no el orden exacto que minimiza el costo total.
+  \item \textbf{Mezclas de perfiles fr\'agiles con perfiles holgados:} una decisi\'on local que parece eficiente sobre un tabl\'on posponible puede desplazar despu\'es a otro m\'as sensible y generar errores en cadena.
+\end{itemize}
+
+En consecuencia:
+
+\begin{itemize}
+  \item el criterio \(\frac{tr}{p}\) tiene una justificaci\'on formal s\'olida en el subproblema tard\'io;
+  \item el problema completo s\'i tiene subestructura \'optima, pero no satisface la propiedad de escogencia voraz;
+  \item por tanto, el algoritmo es una heur\'istica eficiente y bien argumentada, pero no un m\'etodo exacto para el caso general.
+\end{itemize}
+
+\section{Soluci\'on Mediante Programaci\'on Din\'amica}
+
+\subsection{Subestructura \'Optima}
+
+La soluci\'on din\'amica del proyecto modela cada subproblema como un subconjunto de tablones ya regados. Sea \(S \subseteq \{0,\dots,n-1\}\) un subconjunto. Definimos:
+\[
+\tau(S) = \sum_{i \in S} tr_i,
+\]
+que representa el tiempo total consumido por los tablones de \(S\). Esta cantidad depende solo del subconjunto y no del orden interno.
+
+Sea \(OPT(S)\) el costo m\'inimo de regar exactamente los tablones de \(S\) en los primeros \(|S|\) lugares de la programaci\'on. Si una programaci\'on \'optima para \(S\) termina con el tabl\'on \(i \in S\), entonces el prefijo formado por \(S \setminus \{i\}\) debe ser una soluci\'on \'optima para ese subconjunto. Si no lo fuera, podr\'ia reemplazarse por una de menor costo y se obtendr\'ia una mejor programaci\'on para \(S\), contradicci\'on.
+
+Esa observaci\'on demuestra la propiedad de subestructura \'optima. Adem\'as, el n\'umero total de subproblemas es \(2^n\), uno por cada subconjunto de tablones.
+
+\subsection{Definici\'on Recursiva}
+
+Para cada tabl\'on \(i\), definimos la funci\'on de costo local en funci\'on del instante de inicio \(t\):
+\[
+\cost{i}(t)=
+\begin{cases}
+ts_i - (t + tr_i), & \text{si } t = rp_i, \\[4pt]
+2\bigl(ts_i - (t + tr_i)\bigr), & \text{si } t \leq ts_i - tr_i \text{ y } t \neq rp_i, \\[4pt]
+2p_i\bigl((t + tr_i) - ts_i\bigr), & \text{en otro caso.}
+\end{cases}
+\]
+
+La recurrencia natural, agregando el \'ultimo tabl\'on del subconjunto, es:
+\[
+OPT(\varnothing)=0,
+\]
+\[
+OPT(S)=\min_{i\in S}\left\{ OPT\bigl(S\setminus\{i\}\bigr) + \cost{i}\bigl(\tau(S)-tr_i\bigr) \right\}.
+\]
+
+La implementaci\'on del proyecto usa la misma idea en sentido hacia adelante. Si un estado est\'a representado por una m\'ascara de bits \(M\), y el tiempo consumido hasta ese estado es \(\tau(M)\), entonces para cada tabl\'on \(i \notin M\) se intenta la transici\'on:
+\[
+DP[M \cup \{i\}] =
+\min\left(DP[M \cup \{i\}],\; DP[M] + \cost{i}(\tau(M))\right).
+\]
+
+Adem\'as del arreglo de costos m\'inimos, la implementaci\'on almacena el estado anterior y el \'ultimo tabl\'on agregado, lo cual permite reconstruir una permutaci\'on \'optima al finalizar.
+
+\subsection{An\'alisis de Complejidad Temporal y Espacial}
+
+La programaci\'on din\'amica recorre los \(2^n\) estados y, desde cada uno, intenta agregar cada tabl\'on a\'un no regado. Por ello, el n\'umero total de transiciones es del orden de \(n2^n\), y la complejidad temporal es:
+\[
+O(n2^n).
+\]
+
+El espacio est\'a dominado por los arreglos indexados por m\'ascara, cada uno de tama\~no \(2^n\). Por tanto, la complejidad espacial es:
+\[
+O(2^n).
+\]
+
+En la implementaci\'on concreta se usan varias tablas auxiliares para costo, padre, \'ultimo tabl\'on y tiempo acumulado. Eso aumenta el factor constante, pero no cambia el orden asint\'otico.
+
+Si se analiza la utilidad pr\'actica bajo la hip\'otesis del enunciado de \(3\times 10^8\) operaciones por minuto y 4 bytes por celda, se obtiene el siguiente panorama aproximado para \(n = 2^k\):
+
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{ccccc}
+    \toprule
+    \(k\) & \(n=2^k\) & \(n2^n\) operaciones & Tiempo aproximado & Memoria base \(4 \cdot 2^n\) \\
+    \midrule
+    3 & 8  & 2,048              & despreciable & 1 KB \\
+    4 & 16 & 1,048,576          & 0.0035 min   & 256 KB \\
+    5 & 32 & 137,438,953,472    & 458 min      & 16 GB \\
+    \bottomrule
+  \end{tabular}
+  \caption{Estimaci\'on pr\'actica de la programaci\'on din\'amica.}
+\end{table}
+
+La conclusi\'on es que la programaci\'on din\'amica es perfectamente viable para tama\~nos peque\~nos y medianos, pero deja de ser pr\'actica cuando \(k \geq 5\), es decir, cuando \(n\) ya alcanza 32 tablones. En ese punto, tanto el tiempo como la memoria crecen demasiado r\'apido. Aun as\'i, sigue siendo una mejora enorme frente a la fuerza bruta, cuyo crecimiento factorial la vuelve inviable mucho antes.
+
+\section{Comparaci\'on de Estrategias}
+
+La Tabla~\ref{tab:comparacion-estrategias} resume las principales diferencias entre los tres enfoques desarrollados.
+
+\begin{table}[ht]
+  \centering
+  \begin{tabularx}{\textwidth}{>{\bfseries}l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+    \toprule
+    Estrategia & Complejidad temporal & Garant\'ia de optimalidad & Uso pr\'actico \\
+    \midrule
+    Fuerza bruta & \(O(n!\,n)\) & S\'i & Solo instancias muy peque\~nas; sirve como referencia exacta. \\
+    Voraz & \(O(n \log n)\) & No & Muy r\'apido; \'util para obtener una respuesta inmediata. \\
+    Programaci\'on din\'amica & \(O(n2^n)\) & S\'i & Exacta y mucho m\'as escalable que fuerza bruta para instancias moderadas. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Comparaci\'on general de las estrategias.}
+  \label{tab:comparacion-estrategias}
+\end{table}
+
+Desde el punto de vista de calidad de soluci\'on, fuerza bruta y programaci\'on din\'amica son los enfoques correctos para el problema general. La diferencia entre ellos est\'a en la eficiencia: la programaci\'on din\'amica evita recalcular subproblemas equivalentes y por eso reemplaza el crecimiento factorial por uno exponencial de base 2.
+
+Desde el punto de vista de tiempo de respuesta, el voraz es claramente superior. Su costo \(O(n\log n)\) lo hace apropiado para interfaces interactivas o escenarios en los que se necesite una estimaci\'on r\'apida. No obstante, los resultados observados en la bater\'ia del proyecto muestran que esta ganancia en velocidad tiene un precio importante en calidad: el voraz no captura adecuadamente la interacci\'on entre prioridad, margen de supervivencia y d\'ia perfecto.
+
+En consecuencia, una arquitectura razonable para el proyecto es usar:
+
+\begin{itemize}
+  \item fuerza bruta como validador para instancias peque\~nas;
+  \item programaci\'on din\'amica como m\'etodo exacto principal;
+  \item voraz como alternativa r\'apida cuando el tama\~no de entrada o el contexto de uso desaconsejan un algoritmo exacto.
+\end{itemize}
+
+\section{Conclusiones}
+
+El problema del riego \'optimo no puede resolverse correctamente con una intuici\'on local simple, porque el costo de cada tabl\'on depende del instante exacto en que comienza su riego y ese instante, a su vez, depende de todas las decisiones previas. Esa dependencia global explica por qu\'e el enfoque voraz, aunque eficiente, no siempre logra soluciones \'optimas.
+
+La fuerza bruta ofrece una soluci\'on conceptualmente sencilla y totalmente correcta, pero su complejidad factorial la limita a instancias muy peque\~nas. La programaci\'on din\'amica, en cambio, aprovecha la subestructura \'optima del problema y permite obtener soluciones exactas con una mejora sustancial en eficiencia. Aun as\'i, su crecimiento exponencial impone un l\'imite pr\'actico para valores grandes de \(n\).
+
+En este proyecto, la mejor relaci\'on entre exactitud y escalabilidad la ofrece la programaci\'on din\'amica. El algoritmo voraz resulta valioso como heur\'istica y como punto de comparaci\'on experimental, pero no reemplaza un m\'etodo exacto cuando se requiere garantizar optimalidad. La comparaci\'on entre los tres enfoques muestra precisamente la idea central del curso: distintas estrategias de dise\~no algor\'itmico pueden modelar el mismo problema, pero sus beneficios y limitaciones son profundamente diferentes.
+
+\end{document}
