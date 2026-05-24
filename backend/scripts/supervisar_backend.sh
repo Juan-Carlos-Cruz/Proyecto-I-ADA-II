@@ -13,12 +13,13 @@ CHILD_PID=""
 
 mkdir -p "$LOG_DIR"
 
+# Compatible with macOS bash 3.2 (no printf '%(%T)T' — that is bash 4+ only)
 log_info() {
-  printf '[%(%Y-%m-%d %H:%M:%S)T] %s\n' -1 "$1" >> "$STDOUT_LOG"
+  printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$STDOUT_LOG"
 }
 
 log_error() {
-  printf '[%(%Y-%m-%d %H:%M:%S)T] %s\n' -1 "$1" >> "$STDERR_LOG"
+  printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$STDERR_LOG"
 }
 
 cleanup() {
