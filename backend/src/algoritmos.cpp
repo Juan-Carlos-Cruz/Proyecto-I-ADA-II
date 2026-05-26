@@ -160,75 +160,71 @@ ResultadoCalculo roV(const vector<Tablon>& tablones) {
 // Explora caminos de forma inteligente, recordando lo que ya calculó para no repetirlo.
 // Complejidad: O(n² × 2ⁿ) tiempo — O(2ⁿ) espacio. Mucho mejor que Fuerza Bruta.
 ResultadoCalculo roPD(const vector<Tablon>& tablones) {
-    int n = (int)tablones.size();
+    int n = tablones.size();
+    int limite_estados = 1 << n; // 2^n estados posibles
     
-    // Un "Bitmask" (Máscara de bits) usa un número entero como un array de booleanos.
-    // Ejemplo si n=3: El estado 5 en binario es '101'.
-    // Eso significa: "Ya regamos el tablón 0 y el tablón 2, pero no el tablón 1".
-    // 1 << n es lo mismo que decir "2 elevado a la n".
-    int total_estados = 1 << n;  
+    // Tabla DP inicializada en -1 (indica que el estado no ha sido calculado)
+    vector<long long> dp(limite_estados, -1);
+    
+    // Tabla para reconstruir el camino óptimo (guarda qué tablón elegimos en cada estado)
+    vector<int> elecciones(limite_estados, -1);
 
-    const long long INF = LLONG_MAX / 2; // Infinito (dividido por 2 para evitar overflows al sumar)
+    // Función lambda recursiva con memoización
+    // 'dia_actual' se pasa como parámetro para evitar recalculaciones costosas
+    auto resolver_dp = [&](auto& self, int mascara, int dia_actual) -> long long {
+        // Caso base: Si todos los bits están en 1, ya regamos todos los tablones.
+        if (mascara == limite_estados - 1) {
+            return 0;
+        }
 
-    // Tablas de memoria para guardar lo que vamos descubriendo:
-    vector<long long> costo_minimo(total_estados, INF);  // El camino más barato para llegar a un estado
-    vector<int>  estado_anterior(total_estados, -1);     // Como "migas de pan" para saber por dónde llegamos
-    vector<int>  ultimo_tablon_regado(total_estados, -1);// Qué tablón regamos justo antes de llegar a este estado
-    vector<int>  tiempo_acumulado(total_estados, 0);     // Día actual en ese estado específico
+        // Si ya calculamos este subproblema, devolvemos el resultado guardado
+        if (dp[mascara] != -1) {
+            return dp[mascara];
+        }
 
-    // Estado inicial: 0 en binario (000...). Ningún tablón regado = costo 0.
-    costo_minimo[0] = 0;  
+        long long mejor_costo = -1;
+        int mejor_siguiente_tablon = -1;
 
-    // Iteramos por todos los estados posibles (desde 000... hasta 111...)
-    for (int estado_actual = 0; estado_actual < total_estados; estado_actual++) {
-        
-        // Si el costo es infinito, significa que es una combinación imposible de alcanzar aún, la saltamos.
-        if (costo_minimo[estado_actual] == INF) continue;
+        // Probar todos los tablones que NO han sido regados aún
+        for (int i = 0; i < n; ++i) {
+            if ((mascara & (1 << i)) == 0) { // Si el bit i está apagado (no regado)
+                
+                // Calculamos el costo de regar el tablón 'i' en el día actual
+                long long costo_de_este = calcular_costo(tablones[i], dia_actual); 
+                
+                // Llamada recursiva sumando el tiempo de riego del tablón actual al día
+                long long costo_del_resto = self(self, mascara | (1 << i), dia_actual + tablones[i].tiempo_riego); 
+                long long costo_total_rama = costo_de_este + costo_del_resto;
 
-        int dia_inicio = tiempo_acumulado[estado_actual];
-
-        // Desde nuestro estado actual, probamos regar CADA tablón disponible
-        for (int i = 0; i < n; i++) {
-            
-            // Operador AND a nivel de bits (&):
-            // (1 << i) crea un número con solo el bit 'i' encendido.
-            // Si (estado_actual & (1 << i)) da verdadero, significa que el tablón 'i' YA fue regado.
-            if (estado_actual & (1 << i)) {
-                continue; // Ya está regado, saltamos al siguiente
-            }
-
-            // Operador OR a nivel de bits (|):
-            // Encendemos el bit 'i' para crear el "futuro" estado tras regar este tablón.
-            int siguiente_estado = estado_actual | (1 << i);
-            
-            long long costo_del_riego = calcular_costo(tablones[i], dia_inicio);
-            long long costo_total_simulado = costo_minimo[estado_actual] + costo_del_riego;
-
-            // Si descubrimos un camino más barato hacia ese 'siguiente_estado', lo actualizamos
-            if (costo_total_simulado < costo_minimo[siguiente_estado]) {
-                costo_minimo[siguiente_estado]       = costo_total_simulado;
-                estado_anterior[siguiente_estado]    = estado_actual;
-                ultimo_tablon_regado[siguiente_estado] = i;
-                tiempo_acumulado[siguiente_estado]   = dia_inicio + tablones[i].tiempo_riego;
+                // Buscamos minimizar el costo total
+                if (mejor_costo == -1 || costo_total_rama < mejor_costo) {
+                    mejor_costo = costo_total_rama;
+                    mejor_siguiente_tablon = i;
+                }
             }
         }
-    }
 
-    // Ya calculamos todo. Ahora toca reconstruir el mejor camino leyendo las "migas de pan".
+        // Guardamos la decisión para poder reconstruir el orden al final
+        elecciones[mascara] = mejor_siguiente_tablon;
+        
+        // Guardamos en memoria (memoización) y retornamos
+        return dp[mascara] = mejor_costo;
+    };
+
+    // Ejecutamos el algoritmo DP comenzando desde el estado 0 (ningún tablón regado) en el día 0
+    resolver_dp(resolver_dp, 0, 0);
+
+    // Reconstrucción exclusiva del vector de orden óptimo (los índices elegidos)
     vector<int> orden_optimo;
+    int mascara_actual = 0;
     
-    // Empezamos desde el final: el estado donde todos los bits están encendidos (todos regados)
-    int estado_reconstruccion = total_estados - 1; 
-    
-    while (estado_reconstruccion != 0) { // Mientras no lleguemos al inicio
-        orden_optimo.push_back(ultimo_tablon_regado[estado_reconstruccion]);
-        estado_reconstruccion = estado_anterior[estado_reconstruccion]; // Retrocedemos un paso
+    while (mascara_actual != limite_estados - 1) {
+        int siguiente = elecciones[mascara_actual];
+        orden_optimo.push_back(siguiente);
+        mascara_actual |= (1 << siguiente); // Avanzamos al siguiente estado
     }
-    
-    // Como reconstruimos de fin a inicio, el arreglo está al revés. Lo volteamos.
-    reverse(orden_optimo.begin(), orden_optimo.end());
 
-    // Devolvemos el resultado empaquetado y detallado
+    // Retornamos el struct completo llamando a tu función de simulación
     return evaluar_orden(tablones, orden_optimo);
 }
 
