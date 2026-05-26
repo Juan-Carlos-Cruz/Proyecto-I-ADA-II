@@ -158,7 +158,7 @@ ResultadoCalculo roV(const vector<Tablon>& tablones) {
 
 // ── 3. roPD: Programación Dinámica con Máscara de Bits (Bitmask) ─────────────
 // Explora caminos de forma inteligente, recordando lo que ya calculó para no repetirlo.
-// Complejidad: O(n² × 2ⁿ) tiempo — O(2ⁿ) espacio. Mucho mejor que Fuerza Bruta.
+// Complejidad: O(n × 2ⁿ) tiempo — O(2ⁿ) espacio. Mucho mejor que Fuerza Bruta.
 ResultadoCalculo roPD(const vector<Tablon>& tablones) {
     int n = tablones.size();
     int limite_estados = 1 << n; // 2^n estados posibles
