@@ -71,7 +71,7 @@ static ResultadoCalculo evaluar_orden(const vector<Tablon>& tablones, const vect
 
 // ── Comparadores por criterio ────────────────────────────────────────────────
 
-// Nota para Juniors: Estas funciones devuelven 'true' si el tablon 'a' debe ir ANTES que el 'b'
+// Nota: Estas funciones devuelven 'true' si el tablon 'a' debe ir ANTES que el 'b'
 // (Es decir, si 'a' es "menor" o "mejor" que 'b' según el criterio elegido).
 
 static bool menor_ratio_riego_prioridad(const Tablon& a, const Tablon& b) {

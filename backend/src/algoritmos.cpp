@@ -192,8 +192,14 @@ ResultadoCalculo roPD(const vector<Tablon>& tablones) {
                 // Calculamos el costo de regar el tablón 'i' en el día actual
                 long long costo_de_este = calcular_costo(tablones[i], dia_actual); 
                 
-                // Llamada recursiva sumando el tiempo de riego del tablón actual al día
-                long long costo_del_resto = self(self, mascara | (1 << i), dia_actual + tablones[i].tiempo_riego); 
+                    // Llamada recursiva sumando el tiempo de riego del tablón actual al día
+                    long long costo_del_resto = self(
+                        self, 
+                        mascara | (1 << i), 
+                        dia_actual + tablones[i].tiempo_riego
+                    
+                    ); 
+
                 long long costo_total_rama = costo_de_este + costo_del_resto;
 
                 // Buscamos minimizar el costo total
