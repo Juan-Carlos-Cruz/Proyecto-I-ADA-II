@@ -128,8 +128,12 @@ int main(int argc, char** argv) {
   g_running_flag = &running;
 
   std::signal(SIGINT, handle_signal);
+#ifdef SIGTERM
   std::signal(SIGTERM, handle_signal);
+#endif
+#ifdef SIGPIPE
   std::signal(SIGPIPE, SIG_IGN);
+#endif
 
   try {
     riego::http::HttpServer server(port, running, handle_request);

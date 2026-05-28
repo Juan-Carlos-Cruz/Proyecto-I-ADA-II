@@ -51,6 +51,7 @@ Para usar el proyecto tal como está en el repositorio:
 - un navegador web moderno.
 
 En macOS y Linux, los scripts `iniciar_proyecto` y `detener_proyecto` funcionan directamente con `bash`.
+En Windows nativo, el arranque recomendado usa `CMake` y un compilador C++20 compatible como `MSVC` o `MinGW-w64`.
 
 ## Cómo levantar y detener el backend
 
@@ -107,7 +108,7 @@ Si lo levantaste manualmente en la terminal, detenlo con `Ctrl + C`.
 
 ### Windows
 
-La forma recomendada para este repositorio es usar `WSL`, porque los scripts del proyecto están hechos en `bash` y el `Makefile` usa herramientas POSIX.
+El repositorio ahora tiene dos rutas para Windows: `WSL` o ejecución nativa.
 
 #### Windows con WSL
 
@@ -125,13 +126,59 @@ Para detenerlo:
 
 #### Windows nativo
 
-El repositorio no incluye un lanzador `.bat` o `.ps1`. Si deseas ejecutarlo fuera de WSL, necesitas un entorno compatible con `g++`, `make` y `bash` como `Git Bash` o `MSYS2/MinGW`.
+Requisitos:
 
-En ese caso, la forma más segura es levantar el backend manualmente:
+- `CMake`
+- Visual Studio Build Tools o `MSYS2/MinGW-w64`
+- PowerShell o `cmd`
+
+Desde la raíz del proyecto:
+
+En `cmd`:
+
+```bat
+iniciar_proyecto.bat
+```
+
+En PowerShell:
+
+```powershell
+.\iniciar_proyecto.ps1
+```
+
+Si no quieres que abra el navegador:
+
+```powershell
+.\iniciar_proyecto.ps1 --no-open
+```
+
+Para detenerlo:
+
+En `cmd`:
+
+```bat
+detener_proyecto.bat
+```
+
+En PowerShell:
+
+```powershell
+.\detener_proyecto.ps1
+```
+
+Si prefieres compilar manualmente en Windows nativo:
+
+```powershell
+cmake -S . -B build
+cmake --build build --config Release
+.\backend\bin\riego_backend.exe --port 8080
+```
+
+Si trabajas en `Git Bash` o `MSYS2`, tambien puedes seguir usando `make backend`:
 
 ```bash
 make backend
-./backend/bin/riego_backend --port 8080
+./backend/bin/riego_backend.exe --port 8080
 ```
 
 Para detenerlo, usa `Ctrl + C` en la misma terminal.
@@ -251,5 +298,7 @@ http://127.0.0.1:8080/health
 
 - `./iniciar_proyecto`: compila, levanta backend y abre la interfaz.
 - `./detener_proyecto`: detiene el backend lanzado por el proyecto.
+- `iniciar_proyecto.bat` o `.\iniciar_proyecto.ps1`: arranque nativo en Windows.
+- `detener_proyecto.bat` o `.\detener_proyecto.ps1`: detención nativa en Windows.
 - `riego_interfaz_frontend.html`: interfaz para análisis individuales y comparativos.
 - `bateria_pruebas/`: conjunto de entradas para pruebas y validación.

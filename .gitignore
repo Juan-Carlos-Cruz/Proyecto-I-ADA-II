@@ -15,6 +15,9 @@ __pycache__/
 /.backend.pid
 /.backend.child.pid
 /backend/logs/
+/build/
+/backend/bin/*.exe
+/backend/bin/*.pdb
 
 # Artefactos generados por generar_tests_aleatorios.py
 /bateria_pruebas/Tests/tests_aleatorios_por_n_5_27/

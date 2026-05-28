@@ -72,8 +72,10 @@ El frontend ya tiene una configuracion central en `assets/js/config/app-config.j
 - El servidor ya responde `OPTIONS /calcular` con CORS listo para navegador.
 - El servidor ya responde `POST /calcular` con una salida provisional funcional.
 - La logica de algoritmos todavia es un stub y debe reemplazarse por tu implementacion real.
-- Cada request se atiende en un proceso hijo, para que un fallo puntual del algoritmo no tumbe el proceso principal del servidor.
+- En Linux y macOS, cada request se atiende en un proceso hijo para aislar fallos puntuales del algoritmo.
+- En Windows nativo, las requests se atienden en el mismo proceso del backend para evitar dependencias POSIX.
 - El arranque desde `./iniciar_proyecto` usa un supervisor local que relanza el backend si el proceso principal se cae.
+- El arranque nativo de Windows usa `iniciar_proyecto.bat` o `iniciar_proyecto.ps1` y compila con `CMake`.
 
 ## Donde escribir los algoritmos
 
@@ -124,6 +126,14 @@ Si quieres levantar solo el backend manualmente:
 ```bash
 make backend
 ./backend/bin/riego_backend --port 8080
+```
+
+En Windows nativo:
+
+```powershell
+cmake -S . -B build
+cmake --build build --config Release
+.\backend\bin\riego_backend.exe --port 8080
 ```
 
 # Generar archivos de entrada aleatorios

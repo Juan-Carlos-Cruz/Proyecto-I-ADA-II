@@ -1,12 +1,21 @@
 #pragma once
 
 #include <atomic>
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace riego::http {
+
+#ifdef _WIN32
+using SocketHandle = std::uintptr_t;
+inline constexpr SocketHandle kInvalidSocketHandle = static_cast<SocketHandle>(~static_cast<std::uintptr_t>(0));
+#else
+using SocketHandle = int;
+inline constexpr SocketHandle kInvalidSocketHandle = -1;
+#endif
 
 struct Request {
   std::string method;
@@ -34,12 +43,12 @@ class HttpServer {
   int port_;
   std::atomic<bool>& running_flag_;
   RequestHandler handler_;
-  int server_fd_;
+  SocketHandle server_fd_;
 
   void open_listening_socket();
   void close_listening_socket();
   void accept_loop();
-  void handle_client(int client_fd);
+  void handle_client(SocketHandle client_fd);
 };
 
 }  // namespace riego::http
