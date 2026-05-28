@@ -33,7 +33,9 @@ Los algoritmos disponibles en la interfaz son:
 │   ├── Tests/tests/                  # Entradas principales
 │   ├── Tests/output/                 # Salidas de referencia
 │   └── Tests-examples/               # Ejemplos del informe
-├── docs/                             # Informe y PDF
+├── docs/
+│   ├── informe/                     # Informe en LaTeX y PDF compilado
+│   └── presentacion/                # Presentacion resumida en LaTeX
 ├── riego_interfaz_frontend.html      # Interfaz principal
 ├── iniciar_proyecto                  # Lanzador recomendado
 └── detener_proyecto                  # Detiene el backend lanzado

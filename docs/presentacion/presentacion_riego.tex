@@ -1,0 +1,370 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+\setlength{\columnsep}{0.7cm}
+
+\definecolor{VerdeRiego}{RGB}{41,92,64}
+\definecolor{ArenaRiego}{RGB}{173,120,46}
+\definecolor{GrisSuave}{RGB}{245,247,244}
+
+\setbeamercolor{structure}{fg=VerdeRiego}
+\setbeamercolor{title}{fg=VerdeRiego}
+\setbeamercolor{frametitle}{fg=VerdeRiego,bg=GrisSuave}
+\setbeamercolor{block title}{fg=white,bg=VerdeRiego}
+\setbeamercolor{block body}{bg=GrisSuave}
+\setbeamercolor{alerted text}{fg=ArenaRiego}
+\setbeamerfont{block title}{size=\normalsize,series=\bfseries}
+\setbeamerfont{block body}{size=\small}
+
+\title[Plan de riego]{Plan de Riego \'Optimo de una Finca}
+\subtitle{Presentaci\'on resumida del informe}
+\author[Equipo ADA II]{Juan Carlos Cruz Mu\~noz \and David Alejandro Enciso Gutierrez \and Juan Esteban Rodriguez Valencia \and Estiven Andres Martinez Granados}
+\institute[Univalle]{Universidad del Valle \\ An\'alisis de Algoritmos II}
+\date{Mayo de 2026}
+
+\begin{document}
+
+\begin{frame}
+  \vspace{1.2cm}
+  \begin{beamercolorbox}[wd=\textwidth,rounded=true,sep=0.6cm,center]{block title}
+    {\color{white}\rmfamily\bfseries\Large Plan de Riego \'Optimo de una Finca}
+  \end{beamercolorbox}
+
+  \vspace{0.9cm}
+  \begin{center}
+    {\large \insertauthor\par}
+    \vspace{0.8cm}
+    {\normalsize \insertinstitute\par}
+    \vspace{0.8cm}
+    {\large \insertdate\par}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Problema y modelo}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.40\textwidth}
+    \small
+    \begin{block}{Datos del tabl\'on}
+      \begin{tabular}{@{}ll@{}}
+        \toprule
+        S\'imbolo & Significado \\
+        \midrule
+        \(ts_i\) & supervivencia \\
+        \(tr_i\) & tiempo de riego \\
+        \(p_i\) & prioridad \\
+        \(rp_i\) & d\'ia perfecto \\
+        \bottomrule
+      \end{tabular}
+    \end{block}
+
+    \begin{alertblock}{Objetivo}
+      \[
+      \Pi^\star=\arg\min_{\Pi} CR_F^\Pi
+      \]
+    \end{alertblock}
+
+    \column{0.56\textwidth}
+    \scriptsize
+    \begin{block}{Costo por tabl\'on al iniciar \(t_i^\Pi\)}
+      \[
+      c_i^\Pi=
+      \begin{cases}
+      ts_i-(t_i^\Pi+tr_i), & t_i^\Pi=rp_i,\\
+      2\left|ts_i-(t_i^\Pi+tr_i)\right|, &
+      t_i^\Pi\le ts_i-tr_i,\ t_i^\Pi\neq rp_i,\\
+      2p_i\big((t_i^\Pi+tr_i)-ts_i\big), &
+      t_i^\Pi>ts_i-tr_i.
+      \end{cases}
+      \]
+      \[
+      CR_F^\Pi=\sum_{i=0}^{n-1} c_i^\Pi
+      \]
+    \end{block}
+
+    \begin{block}{Idea central}
+      El costo cambia de r\'egimen seg\'un dos referencias:
+      \[
+      rp_i
+      \qquad\text{y}\qquad
+      ts_i-tr_i.
+      \]
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Algoritmos comparados}
+  \small
+  \begin{table}
+    \centering
+    \begin{tabularx}{\textwidth}{@{}>{\RaggedRight\arraybackslash}p{2.7cm}>{\Centering\arraybackslash}p{2.6cm}>{\Centering\arraybackslash}p{1.8cm}X@{}}
+      \toprule
+      Enfoque & Complejidad & Exacto & Lectura r\'apida \\
+      \midrule
+      Fuerza bruta & \(O(n!\,n)\) & S\'i & Revisa todas las permutaciones; sirve como referencia exacta para \(n\) peque\~no. \\
+      Voraz & \(\Theta(n\log n)\) & No & Muy r\'apido; construye una soluci\'on localmente razonable. \\
+      Programaci\'on din\'amica & \(O(n2^n)\) & S\'i & Exacta y mucho m\'as escalable que fuerza bruta. \\
+      \bottomrule
+    \end{tabularx}
+  \end{table}
+
+  \vspace{0.4em}
+  \begin{block}{Pregunta del proyecto}
+    Comparar calidad de la soluci\'on, complejidad y correctitud de los tres enfoques.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Criterio voraz implementado}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.42\textwidth}
+    \begin{block}{Regla de orden}
+      \[
+      \rho_i=\frac{tr_i}{p_i},
+      \qquad
+      h_i=ts_i-tr_i
+      \]
+      \begin{enumerate}\small
+        \item Ordenar por \(\rho_i\) ascendente.
+        \item Si empatan, ordenar por \(h_i\) ascendente.
+        \item Si vuelven a empatar, conservar el menor \'indice.
+      \end{enumerate}
+      \vspace{0.2em}
+      \centering
+      \scriptsize \(\frac{tr}{p}\) balancea duraci\'on del riego y castigo por retraso.
+    \end{block}
+
+    \begin{alertblock}{Complejidad}
+      \[
+      T_{\texttt{roV}}(n)=O(n)+O(n\log n)+O(n)
+      \]
+      \[
+      T_{\texttt{roV}}(n)=\Theta(n\log n)
+      \]
+    \end{alertblock}
+
+    \column{0.50\textwidth}
+    \tiny
+    \begin{block}{Pseudoc\'odigo resumido}
+      \begin{tabular}{@{}l@{}}
+        \textbf{roV}(tablones) \\
+        \quad \(orden\gets[0,1,\dots,n-1]\) \\
+        \quad ordenar\((orden,\ comparar)\) \\
+        \quad retornar evaluar\_orden\((tablones,orden)\) \\
+        \\
+        \textbf{comparar}(\(i,j\)) \\
+        \quad si \(tr_i p_j\neq tr_j p_i\), usar producto cruzado \\
+        \quad si empatan, comparar \(ts_i-tr_i\) \\
+        \quad si empatan otra vez, comparar \'indice \\
+      \end{tabular}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{L\'imite formal del voraz}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.32\textwidth}
+    \begin{block}{Resultado te\'orico}
+      \begin{tabular}{@{}ll@{}}
+        \toprule
+        Propiedad & Estado \\
+        \midrule
+        Subestructura \'optima & S\'i \\
+        Escogencia voraz & No \\
+        \bottomrule
+      \end{tabular}
+    \end{block}
+
+    \begin{alertblock}{Conclusi\'on}
+      El problema admite soluciones exactas, pero el criterio voraz no garantiza costo \'optimo general.
+    \end{alertblock}
+
+    \column{0.60\textwidth}
+    \small
+    \begin{block}{Contraejemplo}
+      \[
+      T_0=\langle 10,2,1,0\rangle,
+      \qquad
+      T_1=\langle 5,3,4,0\rangle
+      \]
+      \[
+      \frac{tr_0}{p_0}=2.00,
+      \qquad
+      \frac{tr_1}{p_1}=0.75
+      \]
+      \begin{tabular}{@{}lcc@{}}
+        \toprule
+        Orden & Regla voraz & Costo \\
+        \midrule
+        \(\langle 1,0\rangle\) & elegido por \(\frac{tr}{p}\) & 12 \\
+        \(\langle 0,1\rangle\) & \'optimo real & 8 \\
+        \bottomrule
+      \end{tabular}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Bater\'ia del repositorio: 18 casos}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.46\textwidth}
+    \small
+    \begin{block}{Resumen de resultados}
+      \begin{tabular}{@{}lc@{}}
+        \toprule
+        M\'etrica & Valor \\
+        \midrule
+        Casos evaluados & 18 \\
+        Coincidencias exactas en costo & \(1/18=5.56\%\) \\
+        Diferencia promedio & 32.56 \\
+        Exceso relativo promedio & 16.23\% \\
+        \bottomrule
+      \end{tabular}
+    \end{block}
+
+    \column{0.46\textwidth}
+    \small
+    \begin{block}{Peores casos}
+      \begin{tabular}{@{}lcc@{}}
+        \toprule
+        Caso & Voraz & \'Optimo \\
+        \midrule
+        \texttt{test12} & 638 & 526 \\
+        \texttt{test4} & 52 & 26 \\
+        \bottomrule
+      \end{tabular}
+      \[
+      d_k=\lvert C_V^{(k)}-C^{\star(k)}\rvert,
+      \qquad
+      e_k=100\frac{d_k}{C^{\star(k)}}
+      \]
+    \end{block}
+
+    \begin{alertblock}{Lectura}
+      La bater\'ia manual confirma que el voraz puede fallar de forma clara incluso en instancias peque\~nas.
+    \end{alertblock}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Validaci\'on emp\'irica: bloque mixto de 5000 fincas}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.41\textwidth}
+    \small
+    \begin{block}{Dise\~no del experimento}
+      \begin{tabular}{@{}lc@{}}
+        \toprule
+        Par\'ametro & Valor \\
+        \midrule
+        Tama\~no por finca & \(n=20\) \\
+        Total de fincas & 5000 \\
+        Total de tablones & 100000 \\
+        Semilla & 20260513 \\
+        \bottomrule
+      \end{tabular}
+    \end{block}
+
+    \column{0.53\textwidth}
+    \small
+    \begin{block}{Resultado del voraz}
+      \begin{tabular}{@{}lc@{}}
+        \toprule
+        M\'etrica & Valor \\
+        \midrule
+        Coincidencias exactas en costo & \(219/5000=4.38\%\) \\
+        Diferencia absoluta promedio & 66.94 \\
+        Exceso relativo promedio & 1.97\% \\
+        Peor diferencia observada & 382 \\
+        \bottomrule
+      \end{tabular}
+    \end{block}
+
+    \begin{alertblock}{Lectura}
+      En mezcla realista, el voraz rara vez iguala el costo \'optimo, pero su exceso relativo promedio sigue siendo bajo.
+    \end{alertblock}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Experimento de aislamiento por perfiles puros}
+  \scriptsize
+  \begin{table}
+    \centering
+    \begin{tabularx}{\textwidth}{@{}>{\RaggedRight\arraybackslash}X>{\Centering\arraybackslash}p{2.2cm}>{\Centering\arraybackslash}p{2.3cm}>{\Centering\arraybackslash}p{2.7cm}@{}}
+      \toprule
+      Perfil exclusivo & Dif. promedio & Exceso relativo & Coincidencia exacta \\
+      \midrule
+      \(100\%\) Cr\'iticos & 0.00 & 0.00\% & \(5000/5000\) \\
+      \(100\%\) Urgentes & 2.83 & 0.05\% & \(1735/5000\) \\
+      \(100\%\) Balanceados & 11.13 & 0.35\% & \(533/5000\) \\
+      \(100\%\) Largo plazo & 180.25 & 1.41\% & \(25/5000\) \\
+      \(100\%\) Relajados & 62.37 & 5.53\% & \(4/5000\) \\
+      \bottomrule
+    \end{tabularx}
+  \end{table}
+
+  \vspace{0.3em}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.47\textwidth}
+    \begin{block}{Acierta mejor}
+      Cr\'itico y urgente: cuando retrasarse casi siempre empuja al caso 3.
+    \end{block}
+
+    \column{0.47\textwidth}
+    \begin{alertblock}{Falla m\'as}
+      Relajado y largo plazo: cuando la holgura y el d\'ia perfecto pesan m\'as que la urgencia.
+    \end{alertblock}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Comparaci\'on de criterios voraces}
+  \scriptsize
+  \begin{table}
+    \centering
+    \begin{tabular}{@{}l l c c@{}}
+      \toprule
+      Principal & Desempate & \% dif. & Exactas \\
+      \midrule
+      \(\frac{tr}{p}\) & \(ts-tr\) & 1.97\% & 219/5000 \\
+      \(\frac{tr}{p}\) & supervivencia & 1.98\% & 215/5000 \\
+      \(\frac{tr}{p}\) & d\'ia perfecto & 2.08\% & 168/5000 \\
+      \(\frac{tr}{p}\) & prioridad alta & 2.20\% & 143/5000 \\
+      supervivencia & \(\frac{tr}{p}\) & 26.14\% & 0/5000 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \vspace{0.2em}
+  \begin{block}{Lectura}
+    Las cuatro mejores variantes mantienen \(\frac{tr}{p}\) como criterio principal.
+  \end{block}
+
+  \begin{alertblock}{Conclusi\'on}
+    El desempate importa, pero la decisi\'on clave es conservar \(\frac{tr}{p}\) como criterio base. El mejor desempate fue \(ts-tr\).
+  \end{alertblock}
+\end{frame}
+
+\begin{frame}{Conclusiones}
+  \small
+  \begin{block}{Mensaje central}
+    El algoritmo voraz \texttt{roV} es una heur\'istica r\'apida y razonable, pero no un m\'etodo exacto para el problema general.
+  \end{block}
+
+  \begin{enumerate}
+    \item \textbf{Teor\'ia:} hay subestructura \'optima, pero no propiedad de escogencia voraz.
+    \item \textbf{Complejidad:} \(\Theta(n\log n)\) frente a \(O(n!\,n)\) y \(O(n2^n)\) de los m\'etodos exactos.
+    \item \textbf{Simulaci\'on:} el criterio funciona mejor en perfiles tensos y empeora con mucha holgura.
+    \item \textbf{Selecci\'on final:} entre las variantes probadas, \(\frac{tr}{p}\) con desempate por \(ts-tr\) fue la m\'as robusta.
+    \item \textbf{Uso recomendado:} si se requiere garant\'ia de costo \'optimo, usar PD; si se requiere rapidez, usar el voraz.
+  \end{enumerate}
+\end{frame}
+
+\end{document}

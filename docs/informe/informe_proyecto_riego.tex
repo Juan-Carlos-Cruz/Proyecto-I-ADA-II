@@ -831,6 +831,24 @@ El algoritmo voraz ejecuta dos fases:
   \item ordena los \(n\) tablones seg\'un el criterio \(\frac{tr}{p}\) con desempate por holgura;
   \item eval\'ua la permutaci\'on resultante.
 \end{enumerate}
+
+El siguiente pseudoc\'odigo resume esa estructura:
+
+\begin{center}
+\begin{minipage}{0.88\textwidth}
+\begin{lstlisting}[mathescape=true,basicstyle=\ttfamily\scriptsize]
+Funcion roV(tablones)
+    orden <- [0,1,...,n-1]
+    ordenar(orden, comparar)
+    retornar evaluar_orden(tablones, orden)
+Funcion comparar(i, j)
+    si $tr_i p_j \ne tr_j p_i$ retornar $tr_i p_j < tr_j p_i$
+    si $ts_i-tr_i \ne ts_j-tr_j$ retornar $ts_i-tr_i < ts_j-tr_j$
+    retornar $i < j$
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
 La primera fase domina el costo total, por lo que la complejidad temporal es
 \[
 O(n \log n).
