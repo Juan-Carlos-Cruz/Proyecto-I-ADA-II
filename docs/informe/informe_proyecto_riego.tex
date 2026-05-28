@@ -68,7 +68,7 @@
     \centering
     \renewcommand{\arraystretch}{1.25}
     \begin{tabular}{>{\bfseries}p{4cm}p{8.2cm}}
-      Estudiantes: & Juan Carlos Cruz Mu\~noz (1824389), David Alejandro Enciso Gutierrez (), Juan Esteban Rodriguez Valencia (), Estiven Andres Martinez Granados () \\
+      Estudiantes: & Juan Carlos Cruz Mu\~noz (1824389), David Alejandro Enciso Gutierrez (), Juan Esteban Rodriguez Valencia (), Estiven Andres Martinez Granados (2179687) \\
       Profesores: & Jes\'us Alexander Aranda \\
       Monitor: & Samuel Galindo \\
     \end{tabular}
@@ -163,30 +163,33 @@ El problema del riego \'optimo consiste entonces en encontrar una permutaci\'on 
 \Pi^\star = \argmin_{\Pi} CR_F^\Pi.
 \]
 
-\section{Soluci\'on Mediante Fuerza Bruta}
+\section{El proyecto}
+
+\subsection{Usando fuerza bruta}
 
 La estrategia de fuerza bruta considera todas las posibles permutaciones de los \(n\) tablones. Para cada orden se simula el avance del tiempo, se calcula el costo de cada tabl\'on con la funci\'on anterior y finalmente se escoge la permutaci\'on de menor costo total.
 
 En la implementaci\'on del proyecto, la funci\'on \texttt{roFB} genera las permutaciones usando la rutina est\'andar \texttt{next\_permutation}. Se conserva el mejor orden visto hasta el momento y, al finalizar el recorrido exhaustivo, se vuelve a evaluar ese orden para construir la salida completa con detalles por tabl\'on.
 
-\subsection{Complejidad}
+\subsubsection{Complejidad}
 
-El n\'umero de permutaciones posibles de \(n\) tablones es \(n!\). Evaluar una permutaci\'on requiere recorrer los \(n\) tablones una vez, por lo que el costo de evaluaci\'on es \(O(n)\). En consecuencia, el tiempo total es:
+El número de permutaciones posibles de \(n\) tablones es \(n!\). Evaluar una permutación requiere recorrer los \(n\) tablones una vez para calcular el costo, lo que cuesta \(O(n)\). Por lo tanto, el tiempo total del algoritmo es:
 \[
 O(n! \cdot n).
 \]
+El espacio auxiliar es \(O(n)\), ya que solo se almacenan la permutación actual, la mejor permutación encontrada y algunas variables escalares.
 
-El espacio auxiliar es \(O(n)\), ya que solo se almacenan la permutaci\'on actual, la mejor permutaci\'on encontrada y algunas variables escalares. Sin embargo, aunque el consumo de memoria es moderado, el crecimiento factorial del tiempo vuelve a esta soluci\'on inviable para instancias medianas. En la pr\'actica, resulta razonable solo para valores peque\~nos de \(n\).
+Esta complejidad factorial hace que el algoritmo sea inviable para valores de \(n\) mayores a \(10\) o \(12\) en la práctica.
 
-\subsection{Correcci\'on}
+\subsubsection{Correcci\'on}
 
 La correcci\'on de la fuerza bruta es directa. El conjunto de soluciones factibles del problema es precisamente el conjunto de todas las permutaciones de los \(n\) tablones. Como el algoritmo recorre todas esas permutaciones y calcula exactamente su costo, necesariamente inspecciona tambi\'en la soluci\'on \'optima global. Al escoger al final la permutaci\'on de menor costo entre todas las evaluadas, el resultado devuelto coincide con la definici\'on del \'optimo del problema.
 
 Por tanto, la estrategia de fuerza bruta siempre produce la respuesta correcta.
 
-\section{Soluci\'on Mediante Algoritmo Voraz}
+\subsection{Usando un algoritmo voraz}
 
-\subsection{Descripci\'on de la Estrategia}
+\subsubsection{Descripci\'on de la Estrategia}
 
 La implementaci\'on voraz del proyecto corresponde a la funci\'on \texttt{roV}. El algoritmo recibe una finca
 \[
@@ -374,6 +377,15 @@ ts_i-tr_i = 4
 ts_j-tr_j = 6.
 \]
 Por eso el algoritmo coloca primero a \(i\).
+
+\subsubsection{complejidad}
+
+El algoritmo voraz ejecuta dos fases: primero ordena los \(n\) tablones según el criterio \(\frac{tr_i}{p_i}\), lo que cuesta \(O(n \log n)\) usando un algoritmo de ordenamiento eficiente; luego evalúa la permutación resultante recorriendo los \(n\) tablones una vez, lo que cuesta \(O(n)\). Por lo tanto, la complejidad temporal total es:\[O(n \log n).\]
+El espacio auxiliar es \(O(n)\), debido al arreglo de índices que almacena la permutación resultante.
+
+\subsubsection{Correcci\'on}
+
+El algoritmo voraz \textbf{no siempre} da la respuesta correcta al problema. Aunque el problema tiene subestructura óptima, el criterio local utilizado (menor \(\frac{tr}{p}\)) no satisface la propiedad de escogencia voraz. Existen contraejemplos que demuestran que la decisión localmente óptima puede conducir a una solución global subóptima.
 
 \subsection{An\'alisis de Resultados}
 
