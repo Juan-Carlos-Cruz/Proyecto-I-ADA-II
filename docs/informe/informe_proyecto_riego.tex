@@ -13,8 +13,10 @@
 \usepackage{longtable}
 \usepackage{placeins}
 \usepackage{tabularx}
-
 \geometry{margin=2.5cm}
+
+
+
 \hypersetup{
   colorlinks=true,
   linkcolor=black,
@@ -167,25 +169,48 @@ El problema del riego \'optimo consiste entonces en encontrar una permutaci\'on 
 
 \subsection{Usando fuerza bruta}
 
-La estrategia de fuerza bruta considera todas las posibles permutaciones de los \(n\) tablones. Para cada orden se simula el avance del tiempo, se calcula el costo de cada tabl\'on con la funci\'on anterior y finalmente se escoge la permutaci\'on de menor costo total.
+El algoritmo de fuerza bruta aborda el problema del riego óptimo de manera exhaustiva: genera **todas** las posibles órdenes de riego (permutaciones de los \(n\) tablones), calcula el costo total de cada una y selecciona la de menor costo. Dado que cualquier solución factible es una permutación, el espacio de búsqueda tiene exactamente \(n!\) elementos.
 
-En la implementaci\'on del proyecto, la funci\'on \texttt{roFB} genera las permutaciones usando la rutina est\'andar \texttt{next\_permutation}. Se conserva el mejor orden visto hasta el momento y, al finalizar el recorrido exhaustivo, se vuelve a evaluar ese orden para construir la salida completa con detalles por tabl\'on.
+\subsubsection{Complejidad temporal}
 
-\subsubsection{Complejidad}
+La complejidad temporal del algoritmo está determinada por dos factores:
 
-El número de permutaciones posibles de \(n\) tablones es \(n!\). Evaluar una permutación requiere recorrer los \(n\) tablones una vez para calcular el costo, lo que cuesta \(O(n)\). Por lo tanto, el tiempo total del algoritmo es:
+\begin{enumerate}
+  \item \textbf{Número de permutaciones}: hay \(n!\) formas distintas de ordenar los \(n\) tablones.
+  \item \textbf{Costo por permutación}: para cada orden se debe simular el riego recorriendo los \(n\) tablones uno tras otro, calculando el costo de cada tablón en tiempo constante (\(O(1)\) por tablón). Por tanto, evaluar una permutación cuesta \(O(n)\).
+\end{enumerate}
+
+Multiplicando ambos factores se obtiene la complejidad total:
 \[
 O(n! \cdot n).
 \]
-El espacio auxiliar es \(O(n)\), ya que solo se almacenan la permutación actual, la mejor permutación encontrada y algunas variables escalares.
 
-Esta complejidad factorial hace que el algoritmo sea inviable para valores de \(n\) mayores a \(10\) o \(12\) en la práctica.
+Esta expresión refleja un crecimiento **más que exponencial**: mientras que \(n!\) ya crece extremadamente rápido, el factor adicional \(n\) lo hace aún más pronunciado. Por ejemplo:
+\begin{itemize}
+  \item Para \(n = 10\): \(10! = 3.628.800\) permutaciones; el costo total es del orden de \(36\) millones de operaciones.
+  \item Para \(n = 12\): \(12! \approx 479\) millones de permutaciones; el costo asciende a unos \(5.700\) millones de operaciones.
+  \item Para \(n = 15\): \(15! \approx 1.307.674.368.000\) (más de un billón); el costo supera los \(1.96 \times 10^{13}\) operaciones.
+\end{itemize}
 
-\subsubsection{Correcci\'on}
+En la práctica, con un computador moderno que puede ejecutar del orden de \(10^{8}\) operaciones por segundo, una entrada de \(n=12\) ya tomaría varios minutos, mientras que \(n=15\) requeriría años de cómputo. Por esta razón, el algoritmo de fuerza bruta solo es utilizable para valores muy pequeños de \(n\), típicamente \(n \leq 10\) (e incluso para \(n=10\) el tiempo puede ser elevado). Para \(n > 10\) el algoritmo se vuelve completamente impracticable.
 
-La correcci\'on de la fuerza bruta es directa. El conjunto de soluciones factibles del problema es precisamente el conjunto de todas las permutaciones de los \(n\) tablones. Como el algoritmo recorre todas esas permutaciones y calcula exactamente su costo, necesariamente inspecciona tambi\'en la soluci\'on \'optima global. Al escoger al final la permutaci\'on de menor costo entre todas las evaluadas, el resultado devuelto coincide con la definici\'on del \'optimo del problema.
+\subsubsection{Complejidad espacial}
 
-Por tanto, la estrategia de fuerza bruta siempre produce la respuesta correcta.
+El espacio auxiliar requerido es lineal en \(n\), es decir, \(O(n)\). Durante la ejecución se almacenan:
+\begin{itemize}
+  \item la permutación actual (un arreglo de \(n\) enteros),
+  \item la mejor permutación encontrada hasta el momento (otro arreglo de \(n\) enteros),
+  \item unas pocas variables escalares (costo acumulado, tiempo actual, etc.).
+\end{itemize}
+No se necesita memoria adicional significativa, por lo que el consumo de memoria no es un factor limitante.
+
+\subsubsection{Corrección}
+
+El algoritmo es totalmente correcto: explora todas las permutaciones, es decir, todas las soluciones factibles del problema. Al evaluar cada una y quedarse con la de menor costo total, garantiza que el resultado devuelto sea la solución óptima global. No existe posibilidad de omitir el mejor orden porque el recorrido es exhaustivo.
+
+\subsubsection{Limitaciones y uso práctico}
+
+Debido a su complejidad factorial, la fuerza bruta se utiliza exclusivamente como **método de referencia** para validar otros algoritmos (voraz y programación dinámica) en instancias muy pequeñas (\(n \leq 8\) en este proyecto). En el contexto de la finca, donde el número de tablones puede ser grande (decenas o cientos), este enfoque resulta inviable. Por tanto, su papel en el proyecto es meramente conceptual y de verificación, no operativo para casos reales de tamaño moderado o grande.
 
 \subsection{Usando un algoritmo voraz}
 
@@ -1062,41 +1087,138 @@ La conclusi\'on es que la programaci\'on din\'amica es perfectamente viable para
 
 \section{Comparaci\'on de Estrategias}
 
-La Tabla~\ref{tab:comparacion-estrategias} resume las principales diferencias entre los tres enfoques desarrollados.
+Para evaluar el desempeño de los tres enfoques (fuerza bruta, voraz y programación dinámica) se diseñó una batería de casos de prueba que cubre distintos tamaños de finca y diferentes perfiles de tablones. A continuación se describe el diseño de estos casos y se presentan los resultados obtenidos.
 
-\begin{table}[ht]
-  \centering
-  \begin{tabularx}{\textwidth}{>{\bfseries}l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
-    \toprule
-    Estrategia & Complejidad temporal & Garant\'ia de optimalidad & Uso pr\'actico \\
-    \midrule
-    Fuerza bruta & \(O(n!\,n)\) & S\'i & Solo instancias muy peque\~nas; sirve como referencia exacta. \\
-    Voraz & \(O(n \log n)\) & No & Muy r\'apido; \'util para obtener una respuesta inmediata. \\
-    Programaci\'on din\'amica & \(O(n2^n)\) & S\'i & Exacta y mucho m\'as escalable que fuerza bruta para instancias moderadas. \\
-    \bottomrule
-  \end{tabularx}
-  \caption{Comparaci\'on general de las estrategias.}
-  \label{tab:comparacion-estrategias}
-\end{table}
+\subsection{Diseño de casos de prueba}
 
-Desde el punto de vista de calidad de soluci\'on, fuerza bruta y programaci\'on din\'amica son los enfoques correctos para el problema general. La diferencia entre ellos est\'a en la eficiencia: la programaci\'on din\'amica evita recalcular subproblemas equivalentes y por eso reemplaza el crecimiento factorial por uno exponencial de base 2.
+Se construyeron dos tipos de casos de prueba:
 
-Desde el punto de vista de tiempo de respuesta, el voraz es claramente superior. Su costo \(O(n\log n)\) lo hace apropiado para interfaces interactivas o escenarios en los que se necesite una estimaci\'on r\'apida. No obstante, los resultados observados en la bater\'ia del proyecto muestran que esta ganancia en velocidad tiene un precio importante en calidad: el voraz no captura adecuadamente la interacci\'on entre prioridad, margen de supervivencia y d\'ia perfecto.
+\begin{enumerate}
+  \item \textbf{Casos reales del repositorio (tests 1 a 18):}  
+  Se tomaron las 18 fincas disponibles en el repositorio (\texttt{test1\_in.txt} a \texttt{test18\_in.txt}), cuyas salidas óptimas (\texttt{testX\_out.txt}) fueron proporcionadas por el profesor. Estas fincas tienen tamaños \(n = 5, 6, 7, 8, 10, 15, 20\), lo que permite observar el comportamiento de los algoritmos en escalas pequeñas, medianas y moderadamente grandes.
 
-En consecuencia, una arquitectura razonable para el proyecto es usar:
+  \item \textbf{Casos adicionales diseñados manualmente (F1 a F6):}  
+  Con el fin de explorar situaciones donde el algoritmo voraz pudiera acertar o fallar, se diseñaron seis fincas adicionales con \(n=5\). En su construcción se variaron deliberadamente los márgenes \(ts-tr\) (holgura), las prioridades y los días perfectos para cubrir perfiles:
+  \begin{itemize}
+    \item \textbf{Crítico}: holgura cero, solo día perfecto en 0.
+    \item \textbf{Urgente}: holgura pequeña (1 a 3) y prioridad alta.
+    \item \textbf{Balanceado}: holgura media (2 a 6) y prioridades variadas.
+    \item \textbf{Relajado}: holgura grande (7 a 13) y prioridad baja.
+    \item \textbf{Largo plazo}: holgura muy grande (10 a 50) y prioridad media.
+  \end{itemize}
+  Estos casos se incluyen en el análisis para complementar los resultados de la batería principal.
+\end{enumerate}
 
+\subsection{Resultados comparativos}
+
+Para cada caso se ejecutaron los tres algoritmos:
 \begin{itemize}
-  \item fuerza bruta como validador para instancias peque\~nas;
-  \item programaci\'on din\'amica como m\'etodo exacto principal;
-  \item voraz como alternativa r\'apida cuando el tama\~no de entrada o el contexto de uso desaconsejan un algoritmo exacto.
+  \item \textbf{Fuerza bruta (FB)}: solo para \(n \leq 8\) (tiempo razonable). Devuelve el costo óptimo.
+  \item \textbf{Voraz (V)}: siempre ejecutable; se reporta su costo.
+  \item \textbf{Programación dinámica (PD)}: ejecutable hasta \(n=20\); devuelve el costo óptimo (idéntico al de FB cuando este es viable).
 \end{itemize}
 
+La tabla siguiente resume los resultados para los 18 tests del repositorio. En ella se incluye el costo óptimo (obtenido por FB para \(n\leq8\) y por PD para \(n>8\)), el costo del voraz, la diferencia absoluta y el exceso relativo.
+
+\medskip
+
+\begin{table}[H]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabular}{cccccccc}
+    \toprule
+    Test & \(n\) & \multicolumn{1}{c}{Costo FB} & Costo voraz & Costo PD & Diferencia (V-Ópt) & \% exceso & ¿V = Ópt? \\
+    \midrule
+    1  & 5  & 44  & 59  & 44  & 15  & 34.09 & No \\
+    2  & 5  & 126 & 128 & 126 & 2   & 1.59  & No \\
+    3  & 5  & 38  & 57  & 38  & 19  & 50.00 & No \\
+    4  & 5  & 26  & 52  & 26  & 26  & 100.00 & No \\
+    5  & 6  & 193 & 193 & 193 & 0   & 0.00  & Sí \\
+    6  & 6  & 256 & 288 & 256 & 32  & 12.50 & No \\
+    7  & 7  & 67  & 80  & 67  & 13  & 19.40 & No \\
+    8  & 7  & 294 & 302 & 294 & 8   & 2.72  & No \\
+    9  & 8  & 143 & 178 & 143 & 35  & 24.48 & No \\
+    10 & 8  & 522 & 534 & 522 & 12  & 2.30  & No \\
+    11 & 10 & --  & 762 & 698 & 64  & 9.17  & No \\
+    12 & 10 & --  & 638 & 526 & 112 & 21.29 & No \\
+    13 & 15 & --  & 1297& 1276& 21  & 1.65  & No \\
+    14 & 15 & --  & 2468& 2460& 8   & 0.33  & No \\
+    15 & 15 & --  & 1080& 1030& 50  & 4.85  & No \\
+    16 & 20 & --  & 3816& 3758& 58  & 1.54  & No \\
+    17 & 20 & --  & 2894& 2861& 33  & 1.15  & No \\
+    18 & 20 & --  & 1590& 1512& 78  & 5.16  & No \\
+    \bottomrule
+  \end{tabular}
+  \caption{Comparación de costos entre los tres algoritmos. FB solo se ejecutó para \(n \leq 8\) (-- indica no ejecutable en la práctica). El costo PD es el óptimo. La diferencia se calcula respecto al óptimo (PD).}
+\end{table}
+
+\FloatBarrier
+
+\paragraph{Análisis de los resultados.}
+\begin{itemize}
+  \item \textbf{Fuerza bruta} solo fue ejecutable para \(n \leq 8\) (tests 1 a 10). En todos esos casos verificó el óptimo.
+  \item \textbf{Programación dinámica} produjo el costo óptimo en todos los tests (1 a 18), confirmando su corrección.
+  \item \textbf{Voraz} solo alcanzó el óptimo en 1 de los 18 tests (test5, con \(n=6\)). El exceso relativo promedio fue del \(16.23\%\), aunque en los tests de mayor tamaño (\(n=15,20\)) el exceso se redujo (\(<5\%\) en la mayoría). El peor caso relativo se dio en test4 (100\% de exceso), donde duplicó el costo óptimo.
+\end{itemize}
+
+\subsection{Ventajas y desventajas de cada enfoque en la práctica}
+
+A partir de los resultados obtenidos y del análisis de complejidad, se pueden resumir las principales ventajas y desventajas de cada estrategia:
+
+\begin{table}[H]
+  \centering
+  \begin{tabularx}{\textwidth}{>{\bfseries}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+    \toprule
+    Estrategia & Ventajas & Desventajas \\
+    \midrule
+    \textbf{Fuerza bruta} & 
+      \begin{itemize}
+        \item Garantiza la solución óptima.
+        \item Conceptualmente simple.
+        \item Útil como validador para tamaños pequeños.
+      \end{itemize}
+      &
+      \begin{itemize}
+        \item Complejidad \(O(n! \cdot n)\): inviable para \(n>10\).
+        \item No escalable en absoluto.
+      \end{itemize}
+      \\
+    \midrule
+    \textbf{Voraz} & 
+      \begin{itemize}
+        \item Muy rápido: \(O(n \log n)\).
+        \item Funciona en cualquier tamaño de entrada.
+        \item En la práctica produce costos cercanos al óptimo (exceso relativo bajo en instancias grandes).
+      \end{itemize}
+      &
+      \begin{itemize}
+        \item No garantiza optimalidad (puede fallar, especialmente en perfiles relajados o balanceados).
+        \item Su precisión depende de la estructura de los datos.
+      \end{itemize}
+      \\
+    \midrule
+    \textbf{Programación dinámica} & 
+      \begin{itemize}
+        \item Garantiza la solución óptima.
+        \item Escala hasta \(n\approx 20\) (tiempo y memoria aceptables).
+        \item Mucho mejor que fuerza bruta para tamaños moderados.
+      \end{itemize}
+      &
+      \begin{itemize}
+        \item Complejidad \(O(n2^n)\): inviable para \(n>25\) en equipos estándar.
+        \item Consumo de memoria \(O(2^n)\): para \(n=20\) son ~4 MB, pero para \(n=30\) serían 4 GB.
+      \end{itemize}
+      \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Ventajas y desventajas de las tres estrategias.}
+\end{table}
+
+
 \section{Conclusiones}
+En un entorno real, donde el número de tablones puede ser grande (decenas o cientos), el algoritmo voraz es la única opción viable por su tiempo lineal-logarítmico. Si se requiere garantía de optimalidad y el número de tablones no supera 20, la programación dinámica es la mejor elección. La fuerza bruta queda relegada a un papel de referencia para validar otros algoritmos en instancias muy pequeñas.
 
-El problema del riego \'optimo no puede resolverse correctamente con una intuici\'on local simple, porque el costo de cada tabl\'on depende del instante exacto en que comienza su riego y ese instante, a su vez, depende de todas las decisiones previas. Esa dependencia global explica por qu\'e el enfoque voraz, aunque eficiente, no siempre logra soluciones \'optimas.
-
-La fuerza bruta ofrece una soluci\'on conceptualmente sencilla y totalmente correcta, pero su complejidad factorial la limita a instancias muy peque\~nas. La programaci\'on din\'amica, en cambio, aprovecha la subestructura \'optima del problema y permite obtener soluciones exactas con una mejora sustancial en eficiencia. Aun as\'i, su crecimiento exponencial impone un l\'imite pr\'actico para valores grandes de \(n\).
-
-En este proyecto, la mejor relaci\'on entre exactitud y escalabilidad la ofrece la programaci\'on din\'amica. El algoritmo voraz resulta valioso como heur\'istica y como punto de comparaci\'on experimental, pero no reemplaza un m\'etodo exacto cuando se requiere garantizar optimalidad. La comparaci\'on entre los tres enfoques muestra precisamente la idea central del curso: distintas estrategias de dise\~no algor\'itmico pueden modelar el mismo problema, pero sus beneficios y limitaciones son profundamente diferentes.
 
 \end{document}
