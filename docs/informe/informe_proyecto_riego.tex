@@ -268,9 +268,9 @@ Desde el punto de vista computacional, la estrategia tiene tres pasos:
   \caption{Desglose operacional del algoritmo voraz.}
 \end{table}
 
-\subsubsection{Codificaci\'on e Implementaci\'on}
+\subsubsection{Correspondencia entre estrategia e implementaci\'on}
 
-La implementaci\'on de \texttt{roV} no reordena directamente los tablones, sino sus \'indices. Para simplificar la escritura, definamos
+El siguiente fragmento no se incluye para deducir la complejidad l\'inea por l\'inea, sino para mostrar que la implementaci\'on en C++ preserva exactamente el criterio voraz descrito antes. La implementaci\'on de \texttt{roV} no reordena directamente los tablones, sino sus \'indices. Para simplificar la escritura, definamos
 \[
 \rho_i=\frac{tr_i}{p_i},
 \qquad
@@ -289,40 +289,6 @@ Como el c\'odigo evita divisiones en punto flotante, la comparaci\'on principal 
 \iff
 tr_i\,p_j < tr_j\,p_i.
 \]
-
-\paragraph{Proposici\'on.}
-El paso de ordenamiento del algoritmo voraz cuesta \(\Theta(n\log n)\).
-
-\paragraph{Demostraci\'on.}
-Sea \(n\) el n\'umero de tablones.
-\[
-\texttt{iota}=O(n).
-\]
-Adem\'as, cada invocaci\'on del comparador realiza un n\'umero constante de operaciones aritm\'eticas y comparaciones enteras; por tanto, cada comparaci\'on cuesta \(O(1)\). Como la biblioteca est\'andar garantiza que \texttt{std::sort}\footnote{V\'ease el borrador del est\'andar C++, secci\'on \href{https://eel.is/c++draft/sort}{[sort]}, donde se especifica la complejidad de \texttt{std::sort} como \(O(N\log N)\) comparaciones y proyecciones.} realiza \(O(n\log n)\) comparaciones, se obtiene la cota superior
-\[
-T_{\text{sort}}(n)=O(n\log n).
-\]
-Para la cota inferior, basta observar que ordenar \(n\) elementos distintos exige distinguir entre las \(n!\) permutaciones posibles. Cada comparaci\'on solo tiene dos resultados, as\'i que despu\'es de \(h\) comparaciones solo pueden diferenciarse a lo sumo \(2^h\) casos. Por lo tanto, necesariamente debe cumplirse
-\[
-2^h \ge n!,
-\]
-y al tomar logaritmos se obtiene
-\[
-h \ge \log_2(n!).
-\]
-Ahora bien, en el producto \(n!=1\cdot 2\cdot \dots \cdot n\), los \'ultimos \(n/2\) factores son al menos \(n/2\). Entonces
-\[
-n! \ge \left(\frac{n}{2}\right)^{n/2},
-\]
-y por tanto
-\[
-h \ge \log_2(n!) \ge \frac{n}{2}\log_2\!\left(\frac{n}{2}\right)=\Omega(n\log n).
-\]
-En consecuencia, cualquier ordenamiento por comparaciones requiere \(\Omega(n\log n)\) comparaciones en el peor caso. Como ya se ten\'ia la cota superior \(O(n\log n)\), se concluye que
-\[
-T_{\text{sort}}(n)=\Theta(n\log n).
-\]
-Finalmente, como \texttt{evaluar\_orden} recorre la permutaci\'on una sola vez, su costo es \(O(n)\) y no modifica el orden asint\'otico total de \texttt{roV}.
 
 El siguiente fragmento muestra el n\'ucleo de esa implementaci\'on:
 
@@ -346,7 +312,7 @@ sort(orden.begin(), orden.end(), [&](int indice_a, int indice_b) {
 });
 \end{lstlisting}
 
-\noindent Brevemente, cada bloque del fragmento cumple una funci\'on espec\'ifica:
+\noindent Brevemente, cada bloque del fragmento cumple una funci\'on espec\'ifica dentro de la estrategia voraz:
 \begin{itemize}
   \item \texttt{vector<int> orden(cantidad\_tablones);} reserva el arreglo donde se guardar\'a la permutaci\'on de \'indices que luego se ordenar\'a.
   \item \texttt{iota(orden.begin(), orden.end(), 0);} inicializa ese arreglo como \(\langle 0,1,\dots,n-1\rangle\), es decir, con el orden original de los tablones.
@@ -374,6 +340,8 @@ ts_i-tr_i = 4
 ts_j-tr_j = 6.
 \]
 Por eso el algoritmo coloca primero a \(i\).
+
+En conjunto, el fragmento confirma que la implementaci\'on concreta preserva exactamente la estructura del algoritmo descrito antes: construir una permutaci\'on de \'indices, ordenarla seg\'un el criterio \(\frac{tr}{p}\), desempatar por holgura y resolver los empates finales de forma determinista por \'indice original.
 
 \subsection{An\'alisis de Resultados}
 
@@ -836,7 +804,7 @@ El siguiente pseudoc\'odigo resume esa estructura:
 
 \begin{center}
 \begin{minipage}{0.88\textwidth}
-\begin{lstlisting}[mathescape=true,basicstyle=\ttfamily\scriptsize]
+\begin{lstlisting}[mathescape=true,basicstyle=\ttfamily\normalsize\linespread{1.12}\selectfont,aboveskip=0.8em,belowskip=0.8em]
 Funcion roV(tablones)
     orden <- [0,1,...,n-1]
     ordenar(orden, comparar)
@@ -849,15 +817,45 @@ Funcion comparar(i, j)
 \end{minipage}
 \end{center}
 
-La primera fase domina el costo total, por lo que la complejidad temporal es
+\paragraph{Proposici\'on.}
+En el pseudoc\'odigo anterior, el paso \texttt{ordenar(orden, comparar)} cuesta \(\Theta(n\log n)\) en la implementaci\'on del proyecto.
+
+\paragraph{Demostraci\'on.}
+Sea \(n\) el n\'umero de tablones. La inicializaci\'on
 \[
-O(n \log n).
+\texttt{orden} \leftarrow [0,1,\dots,n-1]
 \]
-La simulaci\'on posterior recorre la permutaci\'on una sola vez para calcular el 
-tiempo de inicio de riego de cada tabl\'on y acumular el costo total, lo que 
-cuesta $O(n)$ y no modifica el orden asint\'otico total de \texttt{roV}. El 
-espacio auxiliar es $O(n)$, debido al arreglo de \'indices que almacena la 
-permutaci\'on resultante.
+cuesta \(O(n)\). El paso dominante del pseudoc\'odigo es la operaci\'on de ordenamiento. En la notaci\'on del pseudoc\'odigo, esa operaci\'on corresponde a \texttt{ordenar}. Como el comparador realiza un n\'umero constante de operaciones aritm\'eticas y comparaciones enteras, cada comparaci\'on cuesta \(O(1)\). Por tanto, para la cota superior se obtiene\footnote{En la implementaci\'on concreta del proyecto, el paso \texttt{ordenar(orden, comparar)} se resuelve con \texttt{std::sort}. V\'ease el borrador del est\'andar C++, secci\'on \href{https://eel.is/c++draft/sort}{[sort]}, donde se especifica la complejidad de \texttt{std::sort} como \(O(N\log N)\) comparaciones y proyecciones.}
+\[
+T_{\text{ordenar}}(n)=O(n\log n).
+\]
+
+Para la cota inferior, basta observar que el paso abstracto \texttt{ordenar(orden, comparar)} pertenece a la familia de ordenamientos por comparaciones, porque decide el orden relativo usando exclusivamente el comparador \texttt{comparar}. Ordenar \(n\) elementos distintos en ese modelo exige distinguir entre las \(n!\) permutaciones posibles. Cada comparaci\'on solo tiene dos resultados, as\'i que despu\'es de \(h\) comparaciones solo pueden diferenciarse a lo sumo \(2^h\) casos. Por lo tanto, necesariamente debe cumplirse
+\[
+2^h \ge n!,
+\]
+y al tomar logaritmos se obtiene
+\[
+h \ge \log_2(n!).
+\]
+Ahora bien, en el producto \(n!=1\cdot 2\cdot \dots \cdot n\), los \'ultimos \(n/2\) factores son al menos \(n/2\). Entonces
+\[
+n! \ge \left(\frac{n}{2}\right)^{n/2},
+\]
+y por tanto
+\[
+h \ge \log_2(n!) \ge \frac{n}{2}\log_2\!\left(\frac{n}{2}\right)=\Omega(n\log n).
+\]
+En consecuencia, cualquier ordenamiento por comparaciones requiere \(\Omega(n\log n)\) comparaciones en el peor caso. Como ya se ten\'ia la cota superior \(O(n\log n)\), se concluye que
+\[
+T_{\text{ordenar}}(n)=\Theta(n\log n).
+\]
+
+Como la evaluaci\'on posterior de la permutaci\'on recorre los \(n\) tablones una sola vez, su costo es \(O(n)\) y no modifica el orden asint\'otico total de \texttt{roV}. Por tanto, la complejidad temporal total del pseudoc\'odigo, y de la implementaci\'on que lo materializa, es
+\[
+\Theta(n\log n).
+\]
+El espacio auxiliar es \(O(n)\), debido al arreglo de \'indices que almacena la permutaci\'on resultante.
 
 \paragraph{Correctitud del algoritmo voraz.}
 El algoritmo voraz no siempre da la respuesta correcta al problema, entendiendo por respuesta correcta una programaci\'on de riego con costo \'optimo. Aunque el problema s\'i tiene subestructura \'optima, el criterio local usado por el algoritmo no garantiza la propiedad de escogencia voraz. Por esta raz\'on, escoger en cada paso el tabl\'on que parece m\'as conveniente seg\'un \(\frac{tr}{p}\) no asegura necesariamente obtener la mejor soluci\'on global.

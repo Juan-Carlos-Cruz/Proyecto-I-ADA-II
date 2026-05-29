@@ -19,3 +19,12 @@ __pycache__/
 # Artefactos generados por generar_tests_aleatorios.py
 /bateria_pruebas/Tests/tests_aleatorios_por_n_5_27/
 /bateria_pruebas/Tests/tests_aleatorios_por_n_5_27_README.md
+
+#informe
+
+/docs/informe/informe_proyecto_riego.aux
+/docs/informe/informe_proyecto_riego.log
+/docs/informe/informe_proyecto_riego.out
+/docs/informe/informe_proyecto_riego.synctex.gz
+/docs/informe/informe_proyecto_riego.toc
+/docs/informe/informe_proyecto_riego.pdf
