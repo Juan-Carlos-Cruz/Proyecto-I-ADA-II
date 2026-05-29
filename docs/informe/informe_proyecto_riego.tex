@@ -343,7 +343,9 @@ Por eso el algoritmo coloca primero a \(i\).
 
 En conjunto, el fragmento confirma que la implementaci\'on concreta preserva exactamente la estructura del algoritmo descrito antes: construir una permutaci\'on de \'indices, ordenarla seg\'un el criterio \(\frac{tr}{p}\), desempatar por holgura y resolver los empates finales de forma determinista por \'indice original.
 
-\subsection{An\'alisis de Resultados}
+\subsection{Aplicaci\'on del algoritmo y evaluaci\'on experimental}
+
+\subsubsection{Aplicaci\'on del algoritmo a casos concretos}
 
 \paragraph{Aplicaci\'on a los ejemplos del enunciado.}
 Para las dos fincas de la Secci\'on 2.3 del enunciado, el criterio voraz produce la misma permutaci\'on:
@@ -534,11 +536,13 @@ Por tanto, la soluci\'on voraz para \(F_6\) \textbf{no es \'optima}.
     Ejemplo 5 & 5 & 40 & 38 & 2 & No \\
     Ejemplo 6 & 5 & 197 & 196 & 1 & No \\
     \bottomrule
-  \end{tabular}
+\end{tabular}
   \caption{Resumen de cuatro entradas adicionales dise\~nadas para el an\'alisis del algoritmo voraz.}
 \end{table}
 
-\paragraph{Casos adicionales de la bater\'ia de pruebas.}
+\subsubsection{Evaluaci\'on experimental}
+
+\paragraph{Experimento 1: bater\'ia de pruebas del repositorio.}
 Para complementar el an\'alisis, aqu\'i se reporta el conjunto completo de los 18 casos de la bater\'ia de pruebas del repositorio que s\'i cuentan con entrada y salida de referencia. Mostrar todos los casos permite respaldar directamente las estad\'isticas agregadas y ver c\'omo var\'ia el desempe\~no del voraz seg\'un el tama\~no y la estructura de cada finca.
 
 \medskip
@@ -602,7 +606,7 @@ Para complementar el an\'alisis, aqu\'i se reporta el conjunto completo de los 1
 
 Aqu\'i \(C_V^{(k)}\) es el costo obtenido por el voraz en el caso \(k\) y \(C^{\star(k)}\) es el costo \'optimo de ese mismo caso. En esta bater\'ia, el peor caso absoluto fue el \texttt{test12} (638 frente a 526) y el peor caso relativo fue el \texttt{test4}, donde el voraz duplic\'o el costo \'optimo (52 frente a 26).
 
-\paragraph{Validaci\'on emp\'irica con 5000 casos aleatorios de \(n=20\).}
+\paragraph{Experimento 2: bloque mixto aleatorio de 5000 fincas con \(n=20\).}
 La bater\'ia de pruebas permite exhibir contraejemplos y observar con detalle algunos casos concretos, pero no basta para estimar c\'omo se comporta el voraz de manera t\'ipica. Por eso se realiza una validaci\'on emp\'irica adicional sobre una muestra grande: la idea es comprobar si los patrones observados antes se mantienen cuando se consideran muchas fincas distintas, obtener promedios m\'as estables y aislar el an\'alisis en un tama\~no ya exigente (\(n=20\)).
 
 Adem\'as de la bater\'ia de pruebas, se analiz\'o el bloque \texttt{n20} definido por la versi\'on actual del script \path{generar_tests_aleatorios.py}. En su estado actual, el generador produce \'unicamente instancias con \(n=20\), con un total de 5000 fincas y semilla fija \(20260513\). Cada tabl\'on se construye a partir de un perfil aleatorio:
@@ -705,10 +709,10 @@ Los resultados del criterio voraz sobre el bloque mixto de \(n=20\), construido 
 \paragraph{Resumen estad\'istico descriptivo.}
 En las 5000 fincas analizadas, el voraz alcanz\'o exactamente el mismo costo \'optimo en 219 casos (\(4.38\%\)). Cuando no alcanz\'o ese costo, la diferencia absoluta promedio fue de 66.94 unidades y el exceso relativo promedio frente al \'optimo fue de apenas \(1.97\%\). El peor desv\'io absoluto observado en todo el bloque fue 382.
 
-\paragraph{Conclusi\'on general sobre el criterio.}
+\paragraph{Interpretaci\'on del bloque mixto.}
 En conjunto, esto indica que el voraz rara vez alcanza exactamente el costo \'optimo cuando conviven perfiles distintos, aunque el costo adicional que pierde suele mantenerse bajo. Su debilidad principal no est\'a tanto en el valor promedio final, sino en la dificultad para ordenar correctamente tablones con urgencias, prioridades y d\'ias perfectos heterog\'eneos.
 
-\paragraph{Justificaci\'on del experimento de aislamiento.}
+\paragraph{Experimento 3: aislamiento por perfiles.}
 El bloque mixto anterior sirve para medir el comportamiento global del criterio, pero no permite ver qu\'e perfil explica cada error. Por eso, a continuaci\'on se realiza un \textbf{experimento de aislamiento} por perfil. El manejo del an\'alisis cambia as\'i: en lugar de mezclar tipos de tablones, se generan cinco bloques separados de 5000 fincas con \(n=20\), cada uno compuesto al \(100\%\) por un solo perfil (cr\'itico, urgente, balanceado, largo plazo o relajado), manteniendo la misma semilla fija \(20260513\) y comparando siempre contra el \'optimo exacto. En cada bloque se reportan las mismas tres medidas: diferencia promedio, exceso relativo promedio y tasa de coincidencia exacta en costo con el \'optimo. La tabla siguiente muestra c\'omo cambia el rendimiento del voraz en esos escenarios puros:
 
 \begin{table}[!htbp]
@@ -738,10 +742,10 @@ El bloque mixto anterior sirve para medir el comportamiento global del criterio,
 \paragraph{Resumen estad\'istico descriptivo.}
 El experimento de aislamiento muestra un contraste n\'itido entre perfiles. En fincas \(100\%\) cr\'iticas, el voraz alcanz\'o el costo \'optimo en los 5000 casos. En fincas \(100\%\) urgentes, todav\'ia mantuvo un desempe\~no muy alto: diferencia promedio 2.83, exceso relativo \(0.05\%\) y 1735 coincidencias exactas en costo. En cambio, al pasar a perfiles con m\'as espera, esa tasa de costo \'optimo cay\'o a 533/5000 en balanceado, 25/5000 en largo plazo y 4/5000 en relajado.
 
-\paragraph{Conclusi\'on sobre el experimento de perfiles puros.}
+\paragraph{Interpretaci\'on del aislamiento por perfiles.}
 La conclusi\'on es que el voraz funciona muy bien cuando el perfil obliga a decidir r\'apido, pero pierde confiabilidad cuando crece la holgura. Aun as\'i, esa p\'erdida no siempre implica un gran da\~no econ\'omico: en balanceado y largo plazo la tasa de costo \'optimo cae mucho, pero el exceso relativo sigue siendo moderado. El perfil verdaderamente m\'as adverso es relajado, porque all\'i el d\'ia perfecto pesa m\'as que la urgencia inmediata. En otras palabras, el aislamiento confirma que la principal debilidad del criterio aparece cuando debe ordenar tablones muy posponibles.
 
-\paragraph{Sustento emp\'irico del criterio elegido.}
+\paragraph{Experimento 4: comparaci\'on de criterios voraces.}
 Para justificar inequ\'ivocamente la selecci\'on de \(\frac{tr}{p}\) frente a intuiciones alternativas que a priori podr\'ian parecer razonables (como atender lo m\'as urgente, de mayor prioridad o el d\'ia perfecto), se ejecut\'o un laboratorio comparando todas las 20 combinaciones ordenadas implementadas en \path{backend/src/voraz_criterios.cpp}: 5 criterios posibles como clave principal y 4 como desempate. El ranking sobre el nuevo conjunto mixto de 5000 instancias fue el siguiente:
 
 {\footnotesize
@@ -788,8 +792,80 @@ d\'ia perfecto & \(ts-tr\) & 90.03\% & 3270.25 & 0/5000 \\
 \paragraph{Resumen estad\'istico descriptivo.}
 El ranking muestra una separaci\'on muy marcada entre familias de criterios. Las cuatro variantes con \(\frac{tr}{p}\) como criterio principal ocupan los cuatro primeros lugares, con exceso relativo promedio entre 1.97\% y 2.20\%, diferencia promedio entre 66.94 y 74.74, y entre 143 y 219 coincidencias exactas en costo con el \'optimo. La mejor combinaci\'on fue \(\frac{tr}{p}\) con desempate por \(ts-tr\), seguida muy de cerca por \(\frac{tr}{p}\) con supervivencia. En cambio, la mejor variante que ya no usa \(\frac{tr}{p}\) como criterio principal salta a 26.14\% de exceso promedio y 0 coincidencias exactas en costo, mientras que el peor caso del barrido fue d\'ia perfecto con desempate por \(ts-tr\), con 90.03\%.
 
-\paragraph{Conclusi\'on sobre la comparaci\'on de criterios.}
+\paragraph{Interpretaci\'on de la comparaci\'on de criterios.}
 La conclusi\'on es que el desempate s\'i influye, pero su efecto es secundario frente a la elecci\'on del criterio principal. Lo determinante es conservar \(\frac{tr}{p}\) como clave base, porque apenas se reemplaza por urgencia, prioridad, supervivencia o d\'ia perfecto, el rendimiento cae de forma abrupta. Dentro del grupo correcto, el mejor desempate sigue siendo la holgura \(ts-tr\), por lo que esa combinaci\'on queda emp\'iricamente justificada como la versi\'on m\'as robusta del criterio voraz implementado.
+
+\subsubsection{S\'intesis e interpretaci\'on de la evidencia}
+
+\paragraph{An\'alisis de la demostraci\'on formal y de los resultados de simulaci\'on.}
+Teor\'ia y evidencia apuntan a la misma idea:
+\begin{itemize}
+  \item el problema general no cumple la propiedad de escogencia voraz, porque la funci\'on de costo mezcla tres reg\'imenes;
+  \item en los casos 1 y 2 a veces conviene esperar para aprovechar \(rp\) o conservar margen;
+  \item en el caso 3 retrasarse es caro y adem\'as el da\~no se multiplica por la prioridad;
+  \item por eso no existe una regla local que sea siempre exacta;
+  \item aun as\'i, el argumento de intercambio de la Secci\'on 4.1 s\'i justifica \(\frac{tr}{p}\) cuando la instancia est\'a dominada por tardanzas.
+\end{itemize}
+
+\paragraph{S\'intesis de lo encontrado en los experimentos.}
+Los experimentos refuerzan esa lectura:
+\begin{itemize}
+  \item \textbf{Bater\'ia de pruebas + contraejemplo formal:} el voraz s\'i puede fallar; en 18 casos solo alcanz\'o una vez el costo \'optimo y el exceso relativo promedio fue 16.23\%.
+  \item \textbf{Bloque mixto de 5000 fincas:} la tasa de costo \'optimo fue baja (\(219/5000 = 4.38\%\)), pero el exceso relativo promedio baj\'o a 1.97\%.
+  \item \textbf{Perfiles puros:} fue perfecto en cr\'itico, fuerte en urgente y perdi\'o precisi\'on al alcanzar el costo \'optimo cuando aument\'o la holgura, sobre todo en relajado.
+  \item \textbf{Comparaci\'on de 20 combinaciones:} las cuatro mejores variantes mantienen \(\frac{tr}{p}\) como criterio principal; la mejor que lo abandona ya sube a 26.14\% de exceso promedio.
+\end{itemize}
+
+\paragraph{Cu\'ando acierta y cu\'ando falla seg\'un la estructura de costos.}
+Con base en esa evidencia conjunta, el criterio tiende a acertar cuando la instancia est\'a dominada por el costo de llegar tarde y falla cuando la decisi\'on depende m\'as de administrar margen y de coordinar el d\'ia perfecto \(rp\):
+
+\begin{itemize}
+  \setlength{\itemsep}{0.7em}
+  \item \textbf{Acierta mejor cuando casi todo el riesgo est\'a en entrar al caso 3.}
+
+  Eso ocurre en perfiles cr\'iticos y urgentes, donde el margen \(ts-tr\) es nulo o peque\~no. Si esperar casi siempre empeora el costo, la regla \(\frac{tr}{p}\) se alinea bien con la presi\'on real del problema.
+
+  \begin{itemize}
+    \setlength{\itemsep}{0.2em}
+    \item \textit{Ejemplo:} si un tabl\'on tiene \(margen=0\), cualquier espera adicional ya lo hace llegar tarde; si otro adem\'as tiene \(tr\) peque\~no y prioridad alta, regarlo primero reduce r\'apido una penalizaci\'on potencial grande.
+  \end{itemize}
+
+  \item \textbf{Puede elegir un orden no \'optimo sin alejarse mucho del costo \'optimo.}
+
+  En mezclas realistas, el voraz puede ordenar algunos tablones de forma distinta a un orden de costo \'optimo y aun as\'i terminar cerca del mejor costo posible. Eso explica por qu\'e en el bloque mixto la tasa de costo \'optimo fue baja, pero el exceso relativo promedio sigui\'o siendo solo 1.97\%.
+
+  \begin{itemize}
+    \setlength{\itemsep}{0.2em}
+    \item \textit{Ejemplo:} si dos tablones est\'an ambos cerca del caso 3 y sus razones \(\frac{tr}{p}\) son muy similares, cambiar su orden puede impedir alcanzar exactamente el costo \'optimo sin producir una diferencia grande en el costo total.
+  \end{itemize}
+
+  \item \textbf{Falla m\'as cuando el problema consiste en decidir qui\'en puede esperar sin da\~no.}
+
+  Eso aparece en perfiles balanceados, largo plazo y sobre todo relajados, donde el margen es amplio. All\'i ya no basta con evitar tardanzas; hay que decidir si conviene usar el tiempo actual o reservarlo para alinear mejor otro tabl\'on con su d\'ia perfecto \(rp\).
+
+  \begin{itemize}
+    \setlength{\itemsep}{0.2em}
+    \item \textit{Ejemplo:} dos tablones pueden seguir en caso 2 aunque esperen, pero uno tiene \(rp=2\) y el otro \(rp=8\); el mejor orden puede depender de aprovechar ese \(rp\) temprano, no de la raz\'on \(\frac{tr}{p}\).
+  \end{itemize}
+
+  \item \textbf{Falla especialmente cuando una decisi\'on local desplaza a un tabl\'on m\'as sensible.}
+
+  Si un tabl\'on posponible se atiende primero porque tiene buena raz\'on \(\frac{tr}{p}\), puede consumir tiempo y empujar a otro tabl\'on hacia un peor r\'egimen de costo. El problema no es solo evaluar mal un tabl\'on aislado, sino no anticipar su efecto sobre los siguientes.
+
+  \begin{itemize}
+    \setlength{\itemsep}{0.2em}
+    \item \textit{Ejemplo:} un tabl\'on relajado puede esperar varios d\'ias sin problema, pero si se riega antes que uno urgente con \(margen=1\), ese segundo tabl\'on puede pasar de caso 2 a caso 3 y encarecer mucho la soluci\'on.
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Resumen.}
+En relaci\'on con el problema original, la evidencia unificada permite afirmar lo siguiente:
+
+\begin{itemize}
+  \item \(\frac{tr}{p}\) no resuelve exactamente el problema general, porque la correcci\'on depende de alcanzar un costo \'optimo y ese resultado no se determina solo por urgencia y prioridad, sino tambi\'en por cu\'ando conviene esperar.
+  \item Aun as\'i, \(\frac{tr}{p}\) es la mejor regla local evaluada en el proyecto: fue la base de las cuatro mejores combinaciones del laboratorio comparativo y domina claramente a priorizar supervivencia, prioridad alta, margen o d\'ia perfecto como criterio principal.
+  \item Por tanto, el voraz debe entenderse como una heur\'istica r\'apida y bien fundada para aproximar el costo \'optimo, especialmente \'util cuando se necesita respuesta inmediata; si se requiere garantizar una soluci\'on de costo \'optimo para el caso general, hace falta un m\'etodo global como programaci\'on din\'amica.
+\end{itemize}
 
 \subsection{Complejidad y Correcci\'on}
 
@@ -860,7 +936,7 @@ El espacio auxiliar es \(O(n)\), debido al arreglo de \'indices que almacena la 
 \paragraph{Correctitud del algoritmo voraz.}
 El algoritmo voraz no siempre da la respuesta correcta al problema, entendiendo por respuesta correcta una programaci\'on de riego con costo \'optimo. Aunque el problema s\'i tiene subestructura \'optima, el criterio local usado por el algoritmo no garantiza la propiedad de escogencia voraz. Por esta raz\'on, escoger en cada paso el tabl\'on que parece m\'as conveniente seg\'un \(\frac{tr}{p}\) no asegura necesariamente obtener la mejor soluci\'on global.
 
-En consecuencia, el algoritmo debe entenderse como una heur\'istica eficiente: puede coincidir con el \'optimo en ciertos tipos de instancias, especialmente cuando el retraso domina el costo, pero no es exacto para el caso general. A continuaci\'on se justifica esta afirmaci\'on mediante la subestructura \'optima del problema, un contraejemplo a la escogencia voraz y el an\'alisis de los casos en los que el criterio tiende a acertar o fallar.
+En consecuencia, el algoritmo debe entenderse como una heur\'istica eficiente: puede coincidir con el \'optimo en ciertos tipos de instancias, especialmente cuando el retraso domina el costo, pero no es exacto para el caso general. A continuaci\'on se justifica formalmente esta afirmaci\'on mediante la subestructura \'optima del problema y un contraejemplo a la escogencia voraz.
 
 \paragraph{Subestructura \'optima.}
 S\'i se cumple. Sea
@@ -901,76 +977,6 @@ el criterio voraz elige primero a \(T_1\). Sin embargo:
 \end{table}
 
 La soluci\'on \'optima comienza por \(T_0\), no por el tabl\'on de menor \(\frac{tr}{p}\). Esto demuestra formalmente que no existe garant\'ia de que una soluci\'on \'optima empiece con la escogencia voraz.
-
-\paragraph{An\'alisis de la demostraci\'on formal y de los resultados de simulaci\'on.}
-Teor\'ia y evidencia apuntan a la misma idea:
-\begin{itemize}
-  \item el problema general no cumple la propiedad de escogencia voraz, porque la funci\'on de costo mezcla tres reg\'imenes;
-  \item en los casos 1 y 2 a veces conviene esperar para aprovechar \(rp\) o conservar margen;
-  \item en el caso 3 retrasarse es caro y adem\'as el da\~no se multiplica por la prioridad;
-  \item por eso no existe una regla local que sea siempre exacta;
-  \item aun as\'i, el argumento de intercambio de la Secci\'on 4.1 s\'i justifica \(\frac{tr}{p}\) cuando la instancia est\'a dominada por tardanzas.
-\end{itemize}
-
-\paragraph{S\'intesis de lo encontrado en los experimentos.}
-Los experimentos refuerzan esa lectura:
-\begin{itemize}
-  \item \textbf{Bater\'ia de pruebas + contraejemplo formal:} el voraz s\'i puede fallar; en 18 casos solo alcanz\'o una vez el costo \'optimo y el exceso relativo promedio fue 16.23\%.
-  \item \textbf{Bloque mixto de 5000 fincas:} la tasa de costo \'optimo fue baja (\(219/5000 = 4.38\%\)), pero el exceso relativo promedio baj\'o a 1.97\%.
-  \item \textbf{Perfiles puros:} fue perfecto en cr\'itico, fuerte en urgente y perdi\'o precisi\'on al alcanzar el costo \'optimo cuando aument\'o la holgura, sobre todo en relajado.
-  \item \textbf{Comparaci\'on de 20 combinaciones:} las cuatro mejores variantes mantienen \(\frac{tr}{p}\) como criterio principal; la mejor que lo abandona ya sube a 26.14\% de exceso promedio.
-\end{itemize}
-
-\paragraph{Cu\'ando acierta y cu\'ando falla seg\'un la estructura de costos.}
-Con base en esa evidencia conjunta, el criterio tiende a acertar cuando la instancia est\'a dominada por el costo de llegar tarde y falla cuando la decisi\'on depende m\'as de administrar margen y de coordinar el d\'ia perfecto \(rp\):
-
-\begin{itemize}
-  \setlength{\itemsep}{0.7em}
-  \item \textbf{Acierta mejor cuando casi todo el riesgo est\'a en entrar al caso 3.}
-
-  Eso ocurre en perfiles cr\'iticos y urgentes, donde el margen \(ts-tr\) es nulo o peque\~no. Si esperar casi siempre empeora el costo, la regla \(\frac{tr}{p}\) se alinea bien con la presi\'on real del problema.
-
-  \begin{itemize}
-    \setlength{\itemsep}{0.2em}
-    \item \textit{Ejemplo:} si un tabl\'on tiene \(margen=0\), cualquier espera adicional ya lo hace llegar tarde; si otro adem\'as tiene \(tr\) peque\~no y prioridad alta, regarlo primero reduce r\'apido una penalizaci\'on potencial grande.
-  \end{itemize}
-
-  \item \textbf{Puede elegir un orden no \'optimo sin alejarse mucho del costo \'optimo.}
-
-  En mezclas realistas, el voraz puede ordenar algunos tablones de forma distinta a un orden de costo \'optimo y aun as\'i terminar cerca del mejor costo posible. Eso explica por qu\'e en el bloque mixto la tasa de costo \'optimo fue baja, pero el exceso relativo promedio sigui\'o siendo solo 1.97\%.
-
-  \begin{itemize}
-    \setlength{\itemsep}{0.2em}
-    \item \textit{Ejemplo:} si dos tablones est\'an ambos cerca del caso 3 y sus razones \(\frac{tr}{p}\) son muy similares, cambiar su orden puede impedir alcanzar exactamente el costo \'optimo sin producir una diferencia grande en el costo total.
-  \end{itemize}
-
-  \item \textbf{Falla m\'as cuando el problema consiste en decidir qui\'en puede esperar sin da\~no.}
-
-  Eso aparece en perfiles balanceados, largo plazo y sobre todo relajados, donde el margen es amplio. All\'i ya no basta con evitar tardanzas; hay que decidir si conviene usar el tiempo actual o reservarlo para alinear mejor otro tabl\'on con su d\'ia perfecto \(rp\).
-
-  \begin{itemize}
-    \setlength{\itemsep}{0.2em}
-    \item \textit{Ejemplo:} dos tablones pueden seguir en caso 2 aunque esperen, pero uno tiene \(rp=2\) y el otro \(rp=8\); el mejor orden puede depender de aprovechar ese \(rp\) temprano, no de la raz\'on \(\frac{tr}{p}\).
-  \end{itemize}
-
-  \item \textbf{Falla especialmente cuando una decisi\'on local desplaza a un tabl\'on m\'as sensible.}
-
-  Si un tabl\'on posponible se atiende primero porque tiene buena raz\'on \(\frac{tr}{p}\), puede consumir tiempo y empujar a otro tabl\'on hacia un peor r\'egimen de costo. El problema no es solo evaluar mal un tabl\'on aislado, sino no anticipar su efecto sobre los siguientes.
-
-  \begin{itemize}
-    \setlength{\itemsep}{0.2em}
-    \item \textit{Ejemplo:} un tabl\'on relajado puede esperar varios d\'ias sin problema, pero si se riega antes que uno urgente con \(margen=1\), ese segundo tabl\'on puede pasar de caso 2 a caso 3 y encarecer mucho la soluci\'on.
-  \end{itemize}
-\end{itemize}
-
-\paragraph{Conclusi\'on:}
-En relaci\'on con el problema original, la evidencia unificada permite afirmar lo siguiente:
-
-\begin{itemize}
-  \item \(\frac{tr}{p}\) no resuelve exactamente el problema general, porque la correcci\'on depende de alcanzar un costo \'optimo y ese resultado no se determina solo por urgencia y prioridad, sino tambi\'en por cu\'ando conviene esperar.
-  \item Aun as\'i, \(\frac{tr}{p}\) es la mejor regla local evaluada en el proyecto: fue la base de las cuatro mejores combinaciones del laboratorio comparativo y domina claramente a priorizar supervivencia, prioridad alta, margen o d\'ia perfecto como criterio principal.
-  \item Por tanto, el voraz debe entenderse como una heur\'istica r\'apida y bien fundada para aproximar el costo \'optimo, especialmente \'util cuando se necesita respuesta inmediata; si se requiere garantizar una soluci\'on de costo \'optimo para el caso general, hace falta un m\'etodo global como programaci\'on din\'amica.
-\end{itemize}
 
 \section{Soluci\'on Mediante Programaci\'on Din\'amica}
 
