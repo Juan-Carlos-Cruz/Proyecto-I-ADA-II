@@ -327,6 +327,30 @@ permutaciones en cada caso. Al recorrer exhaustivamente ese espacio, la funci\'o
 
 En \(F_1\), la mejor permutaci\'on encontrada tiene costo 20; en \(F_2\), el mejor costo es 32. En ambos casos, la salida coincide con la referencia exacta que luego se usa para evaluar al voraz y para contrastar la programaci\'on din\'amica. Esto ilustra el papel pr\'actico de la fuerza bruta en el proyecto: para instancias peque\~nas, sirve como mecanismo de validaci\'on exacta; para instancias grandes, su crecimiento factorial la vuelve inviable.
 
+\subsubsection{An\'alisis de combinaciones y l\'imites computacionales}
+
+Para profundizar en la aplicaci\'on del algoritmo y evaluar el comportamiento de la fuerza bruta en escenarios m\'as complejos planteados por el equipo ($n=10$ y $n=12$), se analiza cuantitativamente la cantidad de combinaciones (permutaciones) evaluadas en funci\'on del n\'umero de tablones. Debido a que el espacio de b\'usqueda crece de forma factorial ($n!$), un incremento lineal en el tama\~no de la finca desencadena una explosi\'on combinatoria.
+
+La siguiente tabla resume el total de permutaciones peri\'odicas que la funci\'on \texttt{roFB} debe examinar exhaustivamente para determinar el m\'inimo global:
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{cc}
+    \toprule
+    Tama\~no de la finca (\(n\)) & Permutaciones totales evaluadas (\(n!\)) \\
+    \midrule
+    5  & 120 \\
+    8  & 40,320 \\
+    10 & 3,628,800 \\
+    12 & 479,001,600 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Escalabilidad del espacio de b\'usqueda y total de combinaciones evaluadas.}
+\end{table}
+
+Esta aplicaci\'on num\'erica evidencia por qu\'e el enfoque exhaustivo responde de inmediato con las instancias base ($120$ combinaciones), pero se vuelve impracticable al alcanzar los $10$ o $12$ tablones. Procesar casi 480 millones de combinaciones para $n=12$ satura r\'apidamente el tiempo de CPU en entornos convencionales, lo que justifica la implementaci\'on de estrategias m\'as eficientes como el enfoque voraz o la programaci\'on din\'amica.
+
 \section{Soluci\'on Mediante Algoritmo Voraz}
 
 \subsection{Descripci\'on de la Estrategia}
