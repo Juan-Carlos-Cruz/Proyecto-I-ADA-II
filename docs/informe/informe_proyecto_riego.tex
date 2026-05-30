@@ -68,7 +68,7 @@
     \centering
     \renewcommand{\arraystretch}{1.25}
     \begin{tabular}{>{\bfseries}p{4cm}p{8.2cm}}
-      Estudiantes: & Juan Carlos Cruz Mu\~noz (1824389), David Alejandro Enciso Gutierrez (), Juan Esteban Rodriguez Valencia (), Estiven Andres Martinez Granados () \\
+      Estudiantes: & Juan Carlos Cruz Mu\~noz (1824389), David Alejandro Enciso Gutierrez (2240581), Juan Esteban Rodriguez Valencia (2042282), Estiven Andres Martinez Granados (2179687) \\
       Profesores: & Jes\'us Alexander Aranda \\
       Monitor: & Samuel Galindo \\
     \end{tabular}
@@ -165,24 +165,108 @@ El problema del riego \'optimo consiste entonces en encontrar una permutaci\'on 
 
 \section{Soluci\'on Mediante Fuerza Bruta}
 
-La estrategia de fuerza bruta considera todas las posibles permutaciones de los \(n\) tablones. Para cada orden se simula el avance del tiempo, se calcula el costo de cada tabl\'on con la funci\'on anterior y finalmente se escoge la permutaci\'on de menor costo total.
+\subsection{Descripci\'on de la Estrategia}
 
-En la implementaci\'on del proyecto, la funci\'on \texttt{roFB} genera las permutaciones usando la rutina est\'andar \texttt{next\_permutation}. Se conserva el mejor orden visto hasta el momento y, al finalizar el recorrido exhaustivo, se vuelve a evaluar ese orden para construir la salida completa con detalles por tabl\'on.
+La estrategia de fuerza bruta resuelve el problema de manera exhaustiva: recorre el conjunto completo de \'ordenes factibles, eval\'ua el costo total de cada uno y conserva el mejor encontrado. Como toda soluci\'on del problema es una permutaci\'on de los \(n\) tablones, esta estrategia examina expl\'icitamente el espacio total de b\'usqueda.
 
-\subsection{Complejidad}
+\subsubsection{Descripci\'on formal de la estrategia}
 
-El n\'umero de permutaciones posibles de \(n\) tablones es \(n!\). Evaluar una permutaci\'on requiere recorrer los \(n\) tablones una vez, por lo que el costo de evaluaci\'on es \(O(n)\). En consecuencia, el tiempo total es:
+Sea
+\[
+F=\langle T_0,T_1,\dots,T_{n-1}\rangle
+\]
+una finca con \(n\) tablones. La funci\'on \texttt{roFB} parte de la permutaci\'on identidad
+\[
+\Pi_0=\langle 0,1,\dots,n-1\rangle
+\]
+y recorre sucesivamente todas sus permutaciones mediante la rutina \texttt{next\_permutation}. Para cada orden \(\Pi\), el algoritmo simula el avance del tiempo, calcula el costo \(CR_F^\Pi\) y actualiza la mejor soluci\'on si encuentra una permutaci\'on de menor costo. Al finalizar el recorrido, vuelve a evaluar la mejor permutaci\'on para construir la salida completa con detalles por tabl\'on.
+
+El siguiente pseudoc\'odigo resume esta idea:
+
+\begin{center}
+\begin{minipage}{0.9\textwidth}
+\begin{lstlisting}[mathescape=true,basicstyle=\ttfamily\small]
+Funcion roFB(tablones)
+    orden_actual <- [0,1,...,n-1]
+    mejor_orden <- orden_actual
+    mejor_costo <- +infinito
+
+    repetir
+        costo <- evaluar_costo_total(tablones, orden_actual)
+        si costo < mejor_costo
+            mejor_costo <- costo
+            mejor_orden <- copia(orden_actual)
+    mientras next_permutation(orden_actual)
+
+    retornar evaluar_orden_completo(tablones, mejor_orden)
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+\subsubsection{Complejidad}
+
+El costo del algoritmo puede justificarse por bloques:
+\begin{itemize}
+  \item La inicializaci\'on de la permutaci\'on identidad cuesta \(O(n)\).
+  \item El n\'umero de \'ordenes que se generan es \(n!\), pues el espacio de soluciones factibles coincide con el conjunto de todas las permutaciones de los \(n\) tablones.
+  \item Evaluar una permutaci\'on cuesta \(O(n)\), porque para calcular \(CR_F^\Pi\) basta recorrer una vez los \(n\) tablones, actualizando el tiempo acumulado y sumando el costo de cada uno.
+  \item Cada vez que se encuentra una mejor soluci\'on, se almacena una copia de la permutaci\'on actual, lo cual cuesta \(O(n)\). Sin embargo, este costo queda absorbido por el recorrido exhaustivo, cuya fase dominante sigue siendo la evaluaci\'on de las \(n!\) permutaciones.
+  \item La reevaluaci\'on final de \texttt{mejor\_orden} para construir la salida detallada cuesta \(O(n)\) y no modifica la cota asint\'otica total.
+\end{itemize}
+
+Por tanto, la complejidad en tiempo del algoritmo es:
 \[
 O(n! \cdot n).
 \]
 
-El espacio auxiliar es \(O(n)\), ya que solo se almacenan la permutaci\'on actual, la mejor permutaci\'on encontrada y algunas variables escalares. Sin embargo, aunque el consumo de memoria es moderado, el crecimiento factorial del tiempo vuelve a esta soluci\'on inviable para instancias medianas. En la pr\'actica, resulta razonable solo para valores peque\~nos de \(n\).
+La complejidad en espacio es \(O(n)\), ya que solo se mantienen la permutaci\'on actual, la mejor permutaci\'on encontrada y un conjunto constante de variables escalares.
 
-\subsection{Correcci\'on}
+\paragraph{L\'imites computacionales.}
+La dificultad pr\'actica de esta estrategia proviene del crecimiento factorial del n\'umero de permutaciones. En particular:
+\begin{itemize}
+  \item \(10! = 3{,}628{,}800\)
+  \item \(11! = 39{,}916{,}800\)
+  \item \(12! = 479{,}001{,}600\)
+  \item \(13! = 6{,}227{,}020{,}800\)
+\end{itemize}
 
-La correcci\'on de la fuerza bruta es directa. El conjunto de soluciones factibles del problema es precisamente el conjunto de todas las permutaciones de los \(n\) tablones. Como el algoritmo recorre todas esas permutaciones y calcula exactamente su costo, necesariamente inspecciona tambi\'en la soluci\'on \'optima global. Al escoger al final la permutaci\'on de menor costo entre todas las evaluadas, el resultado devuelto coincide con la definici\'on del \'optimo del problema.
+Estos valores muestran que, aun cuando evaluar una permutaci\'on individual es lineal, el n\'umero de \'ordenes posibles crece demasiado r\'apido. En consecuencia, la fuerza bruta es adecuada como referencia exacta para instancias peque\~nas, pero se vuelve impr\'actica para valores moderados de \(n\). En la pr\'actica, el umbral exacto depende del hardware y de la implementaci\'on, aunque alrededor de \(10\) o \(12\) tablones el costo computacional ya suele ser restrictivo.
 
-Por tanto, la estrategia de fuerza bruta siempre produce la respuesta correcta.
+\subsubsection{Correcci\'on}
+
+\paragraph{Proposici\'on.}
+Para toda finca \(F\) con \(n\) tablones, la funci\'on \texttt{roFB} devuelve una permutaci\'on \(\widehat{\Pi}\) tal que
+\[
+CR_F^{\widehat{\Pi}}=\min_{\Pi} CR_F^\Pi.
+\]
+
+\paragraph{Demostraci\'on.}
+Sea
+\[
+\mathcal{P}(F)=\{\Pi_1,\Pi_2,\dots,\Pi_{n!}\}
+\]
+el conjunto de todas las permutaciones factibles de los \(n\) tablones. Este conjunto es finito, con cardinalidad \(n!\). Como la funci\'on de costo \(CR_F^\Pi\) asigna un valor bien definido a cada permutaci\'on \(\Pi \in \mathcal{P}(F)\), existe al menos una permutaci\'on \'optima \(\Pi^\star \in \mathcal{P}(F)\) tal que
+\[
+CR_F^{\Pi^\star}\leq CR_F^\Pi
+\qquad
+\text{para toda } \Pi \in \mathcal{P}(F).
+\]
+
+La funci\'on \texttt{roFB} recorre exhaustivamente los elementos de \(\mathcal{P}(F)\).
+En la implementaci\'on del proyecto, ese recorrido se realiza mediante \texttt{next\_permutation}.
+Durante la enumeraci\'on se mantiene el siguiente invariante: despu\'es de evaluar las primeras \(k\) permutaciones, la variable \texttt{mejor\_orden} almacena una permutaci\'on de costo m\'inimo entre esas \(k\) ya examinadas.
+
+La prueba del invariante es inmediata por inducci\'on sobre \(k\):
+\begin{itemize}
+  \item Para \(k=1\), tras evaluar la primera permutaci\'on, \texttt{mejor\_orden} queda igual a esa \'unica soluci\'on examinada, y por tanto es \'optima dentro del prefijo considerado.
+  \item Sup\'ongase cierto para \(k\). Al evaluar la permutaci\'on \(k+1\), el algoritmo compara su costo con el de \texttt{mejor\_orden}. Si la nueva permutaci\'on es mejor, la reemplaza; si no, conserva la anterior. En ambos casos, al finalizar la iteraci\'on, \texttt{mejor\_orden} sigue representando una permutaci\'on de costo m\'inimo entre las primeras \(k+1\).
+\end{itemize}
+
+Al terminar el recorrido de las \(n!\) permutaciones, el invariante implica que \texttt{mejor\_orden} tiene costo m\'inimo en todo \(\mathcal{P}(F)\). En consecuencia,
+\[
+CR_F^{\texttt{mejor\_orden}}=\min_{\Pi \in \mathcal{P}(F)} CR_F^\Pi.
+\]
+La evaluaci\'on final de \texttt{mejor\_orden} solo reconstruye la salida detallada y no altera la permutaci\'on elegida ni su costo. Por tanto, \texttt{roFB} siempre devuelve una soluci\'on \'optima.
 
 \section{Soluci\'on Mediante Algoritmo Voraz}
 
@@ -540,7 +624,7 @@ Por tanto, la soluci\'on voraz para \(F_6\) \textbf{no es \'optima}.
   \caption{Resumen de cuatro entradas adicionales dise\~nadas para el an\'alisis del algoritmo voraz.}
 \end{table}
 
-\subsubsection{Evaluaci\'on experimental}
+\subsubsection{Evaluaci\'on experimental}\label{sec:voraz-evaluacion-experimental}
 
 \paragraph{Experimento 1: bater\'ia de pruebas del repositorio.}
 Para complementar el an\'alisis, aqu\'i se reporta el conjunto completo de los 18 casos de la bater\'ia de pruebas del repositorio que s\'i cuentan con entrada y salida de referencia. Mostrar todos los casos permite respaldar directamente las estad\'isticas agregadas y ver c\'omo var\'ia el desempe\~no del voraz seg\'un el tama\~no y la estructura de cada finca.
@@ -795,78 +879,6 @@ El ranking muestra una separaci\'on muy marcada entre familias de criterios. Las
 \paragraph{Interpretaci\'on de la comparaci\'on de criterios.}
 La conclusi\'on es que el desempate s\'i influye, pero su efecto es secundario frente a la elecci\'on del criterio principal. Lo determinante es conservar \(\frac{tr}{p}\) como clave base, porque apenas se reemplaza por urgencia, prioridad, supervivencia o d\'ia perfecto, el rendimiento cae de forma abrupta. Dentro del grupo correcto, el mejor desempate sigue siendo la holgura \(ts-tr\), por lo que esa combinaci\'on queda emp\'iricamente justificada como la versi\'on m\'as robusta del criterio voraz implementado.
 
-\subsubsection{S\'intesis e interpretaci\'on de la evidencia}
-
-\paragraph{An\'alisis de la demostraci\'on formal y de los resultados de simulaci\'on.}
-Teor\'ia y evidencia apuntan a la misma idea:
-\begin{itemize}
-  \item el problema general no cumple la propiedad de escogencia voraz, porque la funci\'on de costo mezcla tres reg\'imenes;
-  \item en los casos 1 y 2 a veces conviene esperar para aprovechar \(rp\) o conservar margen;
-  \item en el caso 3 retrasarse es caro y adem\'as el da\~no se multiplica por la prioridad;
-  \item por eso no existe una regla local que sea siempre exacta;
-  \item aun as\'i, el argumento de intercambio de la Secci\'on 4.1 s\'i justifica \(\frac{tr}{p}\) cuando la instancia est\'a dominada por tardanzas.
-\end{itemize}
-
-\paragraph{S\'intesis de lo encontrado en los experimentos.}
-Los experimentos refuerzan esa lectura:
-\begin{itemize}
-  \item \textbf{Bater\'ia de pruebas + contraejemplo formal:} el voraz s\'i puede fallar; en 18 casos solo alcanz\'o una vez el costo \'optimo y el exceso relativo promedio fue 16.23\%.
-  \item \textbf{Bloque mixto de 5000 fincas:} la tasa de costo \'optimo fue baja (\(219/5000 = 4.38\%\)), pero el exceso relativo promedio baj\'o a 1.97\%.
-  \item \textbf{Perfiles puros:} fue perfecto en cr\'itico, fuerte en urgente y perdi\'o precisi\'on al alcanzar el costo \'optimo cuando aument\'o la holgura, sobre todo en relajado.
-  \item \textbf{Comparaci\'on de 20 combinaciones:} las cuatro mejores variantes mantienen \(\frac{tr}{p}\) como criterio principal; la mejor que lo abandona ya sube a 26.14\% de exceso promedio.
-\end{itemize}
-
-\paragraph{Cu\'ando acierta y cu\'ando falla seg\'un la estructura de costos.}
-Con base en esa evidencia conjunta, el criterio tiende a acertar cuando la instancia est\'a dominada por el costo de llegar tarde y falla cuando la decisi\'on depende m\'as de administrar margen y de coordinar el d\'ia perfecto \(rp\):
-
-\begin{itemize}
-  \setlength{\itemsep}{0.7em}
-  \item \textbf{Acierta mejor cuando casi todo el riesgo est\'a en entrar al caso 3.}
-
-  Eso ocurre en perfiles cr\'iticos y urgentes, donde el margen \(ts-tr\) es nulo o peque\~no. Si esperar casi siempre empeora el costo, la regla \(\frac{tr}{p}\) se alinea bien con la presi\'on real del problema.
-
-  \begin{itemize}
-    \setlength{\itemsep}{0.2em}
-    \item \textit{Ejemplo:} si un tabl\'on tiene \(margen=0\), cualquier espera adicional ya lo hace llegar tarde; si otro adem\'as tiene \(tr\) peque\~no y prioridad alta, regarlo primero reduce r\'apido una penalizaci\'on potencial grande.
-  \end{itemize}
-
-  \item \textbf{Puede elegir un orden no \'optimo sin alejarse mucho del costo \'optimo.}
-
-  En mezclas realistas, el voraz puede ordenar algunos tablones de forma distinta a un orden de costo \'optimo y aun as\'i terminar cerca del mejor costo posible. Eso explica por qu\'e en el bloque mixto la tasa de costo \'optimo fue baja, pero el exceso relativo promedio sigui\'o siendo solo 1.97\%.
-
-  \begin{itemize}
-    \setlength{\itemsep}{0.2em}
-    \item \textit{Ejemplo:} si dos tablones est\'an ambos cerca del caso 3 y sus razones \(\frac{tr}{p}\) son muy similares, cambiar su orden puede impedir alcanzar exactamente el costo \'optimo sin producir una diferencia grande en el costo total.
-  \end{itemize}
-
-  \item \textbf{Falla m\'as cuando el problema consiste en decidir qui\'en puede esperar sin da\~no.}
-
-  Eso aparece en perfiles balanceados, largo plazo y sobre todo relajados, donde el margen es amplio. All\'i ya no basta con evitar tardanzas; hay que decidir si conviene usar el tiempo actual o reservarlo para alinear mejor otro tabl\'on con su d\'ia perfecto \(rp\).
-
-  \begin{itemize}
-    \setlength{\itemsep}{0.2em}
-    \item \textit{Ejemplo:} dos tablones pueden seguir en caso 2 aunque esperen, pero uno tiene \(rp=2\) y el otro \(rp=8\); el mejor orden puede depender de aprovechar ese \(rp\) temprano, no de la raz\'on \(\frac{tr}{p}\).
-  \end{itemize}
-
-  \item \textbf{Falla especialmente cuando una decisi\'on local desplaza a un tabl\'on m\'as sensible.}
-
-  Si un tabl\'on posponible se atiende primero porque tiene buena raz\'on \(\frac{tr}{p}\), puede consumir tiempo y empujar a otro tabl\'on hacia un peor r\'egimen de costo. El problema no es solo evaluar mal un tabl\'on aislado, sino no anticipar su efecto sobre los siguientes.
-
-  \begin{itemize}
-    \setlength{\itemsep}{0.2em}
-    \item \textit{Ejemplo:} un tabl\'on relajado puede esperar varios d\'ias sin problema, pero si se riega antes que uno urgente con \(margen=1\), ese segundo tabl\'on puede pasar de caso 2 a caso 3 y encarecer mucho la soluci\'on.
-  \end{itemize}
-\end{itemize}
-
-\paragraph{Resumen.}
-En relaci\'on con el problema original, la evidencia unificada permite afirmar lo siguiente:
-
-\begin{itemize}
-  \item \(\frac{tr}{p}\) no resuelve exactamente el problema general, porque la correcci\'on depende de alcanzar un costo \'optimo y ese resultado no se determina solo por urgencia y prioridad, sino tambi\'en por cu\'ando conviene esperar.
-  \item Aun as\'i, \(\frac{tr}{p}\) es la mejor regla local evaluada en el proyecto: fue la base de las cuatro mejores combinaciones del laboratorio comparativo y domina claramente a priorizar supervivencia, prioridad alta, margen o d\'ia perfecto como criterio principal.
-  \item Por tanto, el voraz debe entenderse como una heur\'istica r\'apida y bien fundada para aproximar el costo \'optimo, especialmente \'util cuando se necesita respuesta inmediata; si se requiere garantizar una soluci\'on de costo \'optimo para el caso general, hace falta un m\'etodo global como programaci\'on din\'amica.
-\end{itemize}
-
 \subsection{Complejidad y Correcci\'on}
 
 \paragraph{Complejidad.}
@@ -978,23 +990,108 @@ el criterio voraz elige primero a \(T_1\). Sin embargo:
 
 La soluci\'on \'optima comienza por \(T_0\), no por el tabl\'on de menor \(\frac{tr}{p}\). Esto demuestra formalmente que no existe garant\'ia de que una soluci\'on \'optima empiece con la escogencia voraz.
 
+\subsubsection{S\'intesis e interpretaci\'on de la evidencia}
+
+\paragraph{An\'alisis de la demostraci\'on formal y de los resultados de simulaci\'on.}
+Teor\'ia y evidencia apuntan a la misma idea:
+\begin{itemize}
+  \item el problema general no cumple la propiedad de escogencia voraz, porque la funci\'on de costo mezcla tres reg\'imenes;
+  \item en los casos 1 y 2 a veces conviene esperar para aprovechar \(rp\) o conservar margen;
+  \item en el caso 3 retrasarse es caro y adem\'as el da\~no se multiplica por la prioridad;
+  \item por eso no existe una regla local que sea siempre exacta;
+  \item aun as\'i, el argumento de intercambio de la Secci\'on 4.1 s\'i justifica \(\frac{tr}{p}\) cuando la instancia est\'a dominada por tardanzas.
+\end{itemize}
+
+\paragraph{S\'intesis de lo encontrado en los experimentos.}
+Los experimentos refuerzan esa lectura:
+\begin{itemize}
+  \item \textbf{Bater\'ia de pruebas + contraejemplo formal:} el voraz s\'i puede fallar; en 18 casos solo alcanz\'o una vez el costo \'optimo y el exceso relativo promedio fue 16.23\%.
+  \item \textbf{Bloque mixto de 5000 fincas:} la tasa de costo \'optimo fue baja (\(219/5000 = 4.38\%\)), pero el exceso relativo promedio baj\'o a 1.97\%.
+  \item \textbf{Perfiles puros:} fue perfecto en cr\'itico, fuerte en urgente y perdi\'o precisi\'on al alcanzar el costo \'optimo cuando aument\'o la holgura, sobre todo en relajado.
+  \item \textbf{Comparaci\'on de 20 combinaciones:} las cuatro mejores variantes mantienen \(\frac{tr}{p}\) como criterio principal; la mejor que lo abandona ya sube a 26.14\% de exceso promedio.
+\end{itemize}
+
+\paragraph{Cu\'ando acierta y cu\'ando falla seg\'un la estructura de costos.}
+Con base en esa evidencia conjunta, el criterio tiende a acertar cuando la instancia est\'a dominada por el costo de llegar tarde y falla cuando la decisi\'on depende m\'as de administrar margen y de coordinar el d\'ia perfecto \(rp\):
+
+\begin{itemize}
+  \setlength{\itemsep}{0.7em}
+  \item \textbf{Acierta mejor cuando casi todo el riesgo est\'a en entrar al caso 3.}
+
+  Eso ocurre en perfiles cr\'iticos y urgentes, donde el margen \(ts-tr\) es nulo o peque\~no. Si esperar casi siempre empeora el costo, la regla \(\frac{tr}{p}\) se alinea bien con la presi\'on real del problema.
+
+  \begin{itemize}
+    \setlength{\itemsep}{0.2em}
+    \item \textit{Ejemplo:} si un tabl\'on tiene \(margen=0\), cualquier espera adicional ya lo hace llegar tarde; si otro adem\'as tiene \(tr\) peque\~no y prioridad alta, regarlo primero reduce r\'apido una penalizaci\'on potencial grande.
+  \end{itemize}
+
+  \item \textbf{Puede elegir un orden no \'optimo sin alejarse mucho del costo \'optimo.}
+
+  En mezclas realistas, el voraz puede ordenar algunos tablones de forma distinta a un orden de costo \'optimo y aun as\'i terminar cerca del mejor costo posible. Eso explica por qu\'e en el bloque mixto la tasa de costo \'optimo fue baja, pero el exceso relativo promedio sigui\'o siendo solo 1.97\%.
+
+  \begin{itemize}
+    \setlength{\itemsep}{0.2em}
+    \item \textit{Ejemplo:} si dos tablones est\'an ambos cerca del caso 3 y sus razones \(\frac{tr}{p}\) son muy similares, cambiar su orden puede impedir alcanzar exactamente el costo \'optimo sin producir una diferencia grande en el costo total.
+  \end{itemize}
+
+  \item \textbf{Falla m\'as cuando el problema consiste en decidir qui\'en puede esperar sin da\~no.}
+
+  Eso aparece en perfiles balanceados, largo plazo y sobre todo relajados, donde el margen es amplio. All\'i ya no basta con evitar tardanzas; hay que decidir si conviene usar el tiempo actual o reservarlo para alinear mejor otro tabl\'on con su d\'ia perfecto \(rp\).
+
+  \begin{itemize}
+    \setlength{\itemsep}{0.2em}
+    \item \textit{Ejemplo:} dos tablones pueden seguir en caso 2 aunque esperen, pero uno tiene \(rp=2\) y el otro \(rp=8\); el mejor orden puede depender de aprovechar ese \(rp\) temprano, no de la raz\'on \(\frac{tr}{p}\).
+  \end{itemize}
+
+  \item \textbf{Falla especialmente cuando una decisi\'on local desplaza a un tabl\'on m\'as sensible.}
+
+  Si un tabl\'on posponible se atiende primero porque tiene buena raz\'on \(\frac{tr}{p}\), puede consumir tiempo y empujar a otro tabl\'on hacia un peor r\'egimen de costo. El problema no es solo evaluar mal un tabl\'on aislado, sino no anticipar su efecto sobre los siguientes.
+
+  \begin{itemize}
+    \setlength{\itemsep}{0.2em}
+    \item \textit{Ejemplo:} un tabl\'on relajado puede esperar varios d\'ias sin problema, pero si se riega antes que uno urgente con \(margen=1\), ese segundo tabl\'on puede pasar de caso 2 a caso 3 y encarecer mucho la soluci\'on.
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Resumen.}
+En relaci\'on con el problema original, la evidencia unificada permite afirmar lo siguiente:
+
+\begin{itemize}
+  \item \(\frac{tr}{p}\) no resuelve exactamente el problema general, porque la correcci\'on depende de alcanzar un costo \'optimo y ese resultado no se determina solo por urgencia y prioridad, sino tambi\'en por cu\'ando conviene esperar.
+  \item Aun as\'i, \(\frac{tr}{p}\) es la mejor regla local evaluada en el proyecto: fue la base de las cuatro mejores combinaciones del laboratorio comparativo y domina claramente a priorizar supervivencia, prioridad alta, margen o d\'ia perfecto como criterio principal.
+  \item Por tanto, el voraz debe entenderse como una heur\'istica r\'apida y bien fundada para aproximar el costo \'optimo, especialmente \'util cuando se necesita respuesta inmediata; si se requiere garantizar una soluci\'on de costo \'optimo para el caso general, hace falta un m\'etodo global como programaci\'on din\'amica.
+\end{itemize}
+
 \section{Soluci\'on Mediante Programaci\'on Din\'amica}
 
-\subsection{Subestructura \'Optima}
+\subsection{Descripci\'on de la Estrategia}
 
-La soluci\'on din\'amica del proyecto modela cada subproblema como un subconjunto de tablones ya regados. Sea \(S \subseteq \{0,\dots,n-1\}\) un subconjunto. Definimos:
+La implementaci\'on del proyecto resuelve esta parte mediante programaci\'on din\'amica \emph{top-down} con memoizaci\'on sobre subconjuntos de tablones. La idea central es modelar cada subproblema por el conjunto de tablones que ya fueron regados y calcular, para ese estado, el costo m\'inimo restante. Esta formulaci\'on sigue los cuatro pasos cl\'asicos de la programaci\'on din\'amica.
+
+\subsubsection{Paso 1: Caracterizar la estructura de la soluci\'on \'optima}
+
+En lugar de pensar directamente en permutaciones completas, la estrategia observa el problema por \textbf{estados}. Un estado queda determinado por el conjunto de tablones que ya fueron regados. Si llamamos \(M\) a ese conjunto, entonces el tiempo acumulado hasta ese punto queda completamente determinado por los tablones de \(M\). Lo representamos por
 \[
-\tau(S) = \sum_{i \in S} tr_i,
+\tau(M)=\sum_{i \in M} tr_i.
 \]
-que representa el tiempo total consumido por los tablones de \(S\). Esta cantidad depende solo del subconjunto y no del orden interno.
 
-Sea \(OPT(S)\) el costo m\'inimo de regar exactamente los tablones de \(S\) en los primeros \(|S|\) lugares de la programaci\'on. Si una programaci\'on \'optima para \(S\) termina con el tabl\'on \(i \in S\), entonces el prefijo formado por \(S \setminus \{i\}\) debe ser una soluci\'on \'optima para ese subconjunto. Si no lo fuera, podr\'ia reemplazarse por una de menor costo y se obtendr\'ia una mejor programaci\'on para \(S\), contradicci\'on.
+Aqu\'i es importante distinguir dos cantidades diferentes: \(tr_i\) sigue representando la \textbf{duraci\'on del riego} del tabl\'on \(i\), mientras que \(\tau(M)\) representa el \textbf{instante acumulado} en el que comenzar\'ia a regarse el siguiente tabl\'on despu\'es de completar los de \(M\).
 
-Esa observaci\'on demuestra la propiedad de subestructura \'optima. Adem\'as, el n\'umero total de subproblemas es \(2^n\), uno por cada subconjunto de tablones.
+Con esta definici\'on, el subproblema asociado a \(M\) puede expresarse as\'i:
 
-\subsection{Definici\'on Recursiva}
+\begin{quote}
+determinar el costo m\'inimo adicional necesario para completar el riego de todos los tablones que a\'un no pertenecen a \(M\), comenzando en el instante \(\tau(M)\).
+\end{quote}
 
-Para cada tabl\'on \(i\), definimos la funci\'on de costo local en funci\'on del instante de inicio \(t\):
+La programaci\'on din\'amica es aplicable porque se cumplen las dos propiedades fundamentales:
+\begin{itemize}
+  \item \textbf{Subestructura \'optima:} si desde un estado \(M\) la mejor decisi\'on es regar primero el tabl\'on \(i\), entonces el resto del plan debe ser tambi\'en \'optimo para el nuevo estado \(M \cup \{i\}\).
+  \item \textbf{Solapamiento de subproblemas:} distintos \'ordenes parciales pueden llevar al mismo conjunto \(M\), de modo que el mismo subproblema reaparece muchas veces si no se guarda su resultado.
+\end{itemize}
+
+\subsubsection{Paso 2: Definir recursivamente el valor de la soluci\'on \'optima}
+
+Para cada tabl\'on \(i\), definimos su costo local al comenzar a regarse en el instante \(t\):
 \[
 \cost{i}(t)=
 \begin{cases}
@@ -1004,91 +1101,685 @@ ts_i - (t + tr_i), & \text{si } t = rp_i, \\[4pt]
 \end{cases}
 \]
 
-La recurrencia natural, agregando el \'ultimo tabl\'on del subconjunto, es:
+En esta expresi\'on, \(t\) denota el \textbf{instante de inicio del riego} del tabl\'on \(i\), mientras que \(tr_i\) denota el \textbf{tiempo que dura} su riego. Es decir, \(t\) indica cu\'ando empieza el tabl\'on y \(t+tr_i\) indica cu\'ando termina.
+
+Ahora definimos \(DP(M)\) como el costo m\'inimo adicional a partir del estado \(M\). Si ya fueron regados todos los tablones, no queda ning\'un costo por agregar. En caso contrario, se prueba cada tabl\'on que a\'un no ha sido regado y se elige la mejor continuaci\'on. Eso produce la recurrencia:
 \[
-OPT(\varnothing)=0,
+DP(M)=0 \qquad \text{si } M \text{ contiene todos los tablones,}
 \]
 \[
-OPT(S)=\min_{i\in S}\left\{ OPT\bigl(S\setminus\{i\}\bigr) + \cost{i}\bigl(\tau(S)-tr_i\bigr) \right\}.
+DP(M)=\min_{i \notin M}\left\{ \cost{i}\bigl(\tau(M)\bigr) + DP(M \cup \{i\}) \right\}
+\qquad
+\text{en otro caso.}
 \]
 
-La implementaci\'on del proyecto usa la misma idea en sentido hacia adelante. Si un estado est\'a representado por una m\'ascara de bits \(M\), y el tiempo consumido hasta ese estado es \(\tau(M)\), entonces para cada tabl\'on \(i \notin M\) se intenta la transici\'on:
+En palabras: desde el estado \(M\), el algoritmo intenta regar como siguiente tabl\'on a cada \(i \notin M\); para cada opci\'on suma el costo inmediato de regar \(i\) en el instante actual y el mejor costo posible del subproblema que queda despu\'es.
+
+\subsubsection{Paso 3: Calcular el valor de la soluci\'on \'optima}
+
+La implementaci\'on concreta usa memoizaci\'on y esto se observa directamente en la funci\'on \texttt{Resolver(M)} del pseudoc\'odigo. Su funcionamiento puede leerse en cuatro acciones:
+\begin{itemize}
+  \item primero verifica si \(M\) ya contiene todos los tablones; si eso ocurre, retorna \(0\), que es el caso base;
+  \item luego consulta si \texttt{dp[M]} ya est\'a definido; si lo est\'a, reutiliza ese valor y evita recomputar el subproblema;
+  \item si el estado todav\'ia no ha sido resuelto, calcula el instante actual \(t \leftarrow \tau(M)\) y recorre todos los tablones que a\'un no pertenecen a \(M\);
+  \item para cada candidato \(i\), eval\'ua el costo
+  \[
+  c_i(t) + \texttt{Resolver}(M \cup \{i\}),
+  \]
+  conserva el menor valor encontrado y finalmente lo almacena en \texttt{dp[M]}.
+\end{itemize}
+
+As\'i, el pseudoc\'odigo implementa exactamente la recurrencia del paso anterior y garantiza que cada estado se calcula una sola vez.
+
+\subsubsection{Paso 4: Construir una soluci\'on \'optima}
+
+La reconstrucci\'on tambi\'en puede leerse directamente en el pseudoc\'odigo. Cada vez que \texttt{Resolver(M)} encuentra un mejor candidato, no solo actualiza \texttt{dp[M]}, sino que guarda en \texttt{eleccion[M]} cu\'al fue el tabl\'on que produjo ese mejor costo. Despu\'es, la funci\'on \texttt{roPD} usa esa informaci\'on de la siguiente manera:
+\begin{itemize}
+  \item comienza en el estado vac\'io, es decir, cuando todav\'ia no se ha regado ning\'un tabl\'on;
+  \item consulta \texttt{eleccion[M]} para saber qu\'e tabl\'on debe regarse a continuaci\'on en una soluci\'on \'optima;
+  \item agrega ese tabl\'on al vector \texttt{orden} y actualiza el estado a \(M \cup \{i\}\);
+  \item repite el proceso hasta que el estado contiene todos los tablones.
+\end{itemize}
+
+De esta manera, el pseudoc\'odigo no solo calcula el costo \'optimo, sino que adem\'as reconstruye expl\'icitamente una permutaci\'on que alcanza ese costo.
+
+El siguiente pseudoc\'odigo resume los pasos 3 y 4 de la estrategia:
+
+\begin{center}
+\begin{minipage}{0.92\textwidth}
+\begin{lstlisting}[mathescape=true,basicstyle=\ttfamily\small]
+Funcion Resolver(M)
+    si M = todos los tablones
+        retornar 0
+    si dp[M] esta definido
+        retornar dp[M]
+
+    t <- tau(M)
+    mejor_costo <- +infinito
+    mejor_siguiente <- -1
+
+    para cada i que aun no este en M
+        candidato <- c_i(t) + Resolver(M U {i})
+        si candidato < mejor_costo
+            mejor_costo <- candidato
+            mejor_siguiente <- i
+
+    dp[M] <- mejor_costo
+    eleccion[M] <- mejor_siguiente
+    retornar mejor_costo
+
+Funcion roPD(tablones)
+    inicializar dp y eleccion
+    costo_optimo <- Resolver(vacio)
+    M <- vacio
+    orden <- []
+
+    mientras M no contenga todos los tablones
+        i <- eleccion[M]
+        agregar i a orden
+        M <- M U {i}
+
+    retornar evaluar_orden_completo(tablones, orden)
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+\subsection{An\'alisis de Complejidad en Tiempo y en Espacio}
+
+\paragraph{Proposici\'on.}
+La complejidad en tiempo de la programaci\'on din\'amica descrita arriba es \(O(n2^n)\) y su complejidad en espacio es \(O(2^n)\).
+
+\paragraph{Demostraci\'on.}
+La clave del an\'alisis est\'a en contar cu\'antos estados distintos puede tomar la funci\'on \texttt{Resolver} y cu\'anto cuesta procesar cada uno.
+
+Cada estado est\'a determinado por un subconjunto \(M \subseteq U\). Como \(U\) tiene \(n\) elementos, el n\'umero total de subconjuntos posibles es:
 \[
-DP[M \cup \{i\}] =
-\min\left(DP[M \cup \{i\}],\; DP[M] + \cost{i}(\tau(M))\right).
+|\mathcal{P}(U)|=2^n.
 \]
 
-Adem\'as del arreglo de costos m\'inimos, la implementaci\'on almacena el estado anterior y el \'ultimo tabl\'on agregado, lo cual permite reconstruir una permutaci\'on \'optima al finalizar.
+Debido a la memoizaci\'on, cada estado \(M\) se resuelve a lo sumo una vez. Cuando vuelve a aparecer, el pseudoc\'odigo retorna inmediatamente el valor almacenado en \texttt{dp[M]}. Por tanto, el costo total queda determinado por el procesamiento de esos \(2^n\) estados distintos.
 
-\subsection{An\'alisis de Complejidad Temporal y Espacial}
+En cada estado, el bloque dominante es el ciclo
+\[
+\texttt{para cada } i \in U \setminus M.
+\]
+En el peor caso, este ciclo examina \(n\) tablones. Cada iteraci\'on realiza solo operaciones de tiempo constante: verificar pertenencia mediante la m\'ascara, evaluar \(\cost{i}(t)\), consultar o invocar recursivamente un estado memoizado y comparar costos. Luego, el costo por estado es \(O(n)\).
 
-La programaci\'on din\'amica recorre los \(2^n\) estados y, desde cada uno, intenta agregar cada tabl\'on a\'un no regado. Por ello, el n\'umero total de transiciones es del orden de \(n2^n\), y la complejidad temporal es:
+En consecuencia, el costo total de calcular todos los valores de la tabla din\'amica es:
+\[
+2^n \cdot O(n)=O(n2^n).
+\]
+
+La fase de reconstrucci\'on recorre exactamente una vez los \(n\) tablones del orden \'optimo, de modo que cuesta \(O(n)\). Esta fase no altera la cota dominante. Por tanto, la complejidad en tiempo total del algoritmo es:
 \[
 O(n2^n).
 \]
 
-El espacio est\'a dominado por los arreglos indexados por m\'ascara, cada uno de tama\~no \(2^n\). Por tanto, la complejidad espacial es:
+En espacio, las estructuras dominantes son los arreglos \texttt{dp} y \texttt{eleccion}, ambos indexados por m\'ascara y de tama\~no \(2^n\). Adem\'as, la recursi\'on y el vector del orden reconstruido aportan a lo sumo \(O(n)\) posiciones adicionales. Por ello,
+\[
+O(2^n) + O(n)=O(2^n),
+\]
+y la complejidad en espacio total es:
 \[
 O(2^n).
 \]
 
-En la implementaci\'on concreta se usan varias tablas auxiliares para costo, padre, \'ultimo tabl\'on y tiempo acumulado. Eso aumenta el factor constante, pero no cambia el orden asint\'otico.
+\paragraph{Interpretaci\'on pr\'actica.}
+Aunque esta estrategia mejora dr\'asticamente a la fuerza bruta, sigue siendo exponencial. En consecuencia, es apropiada cuando el tama\~no del problema permanece en un rango moderado y se necesita garantizar optimalidad, pero deja de ser viable cuando \(n\) crece lo suficiente como para que \(2^n\) domine tanto el tiempo como la memoria disponibles.
 
-Si se analiza la utilidad pr\'actica bajo la hip\'otesis del enunciado de \(3\times 10^8\) operaciones por minuto y 4 bytes por celda, se obtiene el siguiente panorama aproximado para \(n = 2^k\):
+\subsection{Correcci\'on}
 
-\begin{table}[ht]
-  \centering
-  \begin{tabular}{ccccc}
-    \toprule
-    \(k\) & \(n=2^k\) & \(n2^n\) operaciones & Tiempo aproximado & Memoria base \(4 \cdot 2^n\) \\
-    \midrule
-    3 & 8  & 2,048              & despreciable & 1 KB \\
-    4 & 16 & 1,048,576          & 0.0035 min   & 256 KB \\
-    5 & 32 & 137,438,953,472    & 458 min      & 16 GB \\
-    \bottomrule
-  \end{tabular}
-  \caption{Estimaci\'on pr\'actica de la programaci\'on din\'amica.}
-\end{table}
+\paragraph{Teorema.}
+Para toda finca \(F\) con conjunto de tablones \(U\), la funci\'on \texttt{roPD} devuelve una permutaci\'on \(\widehat{\Pi}\) tal que
+\[
+CR_F^{\widehat{\Pi}}=\min_{\Pi} CR_F^\Pi.
+\]
 
-La conclusi\'on es que la programaci\'on din\'amica es perfectamente viable para tama\~nos peque\~nos y medianos, pero deja de ser pr\'actica cuando \(k \geq 5\), es decir, cuando \(n\) ya alcanza 32 tablones. En ese punto, tanto el tiempo como la memoria crecen demasiado r\'apido. Aun as\'i, sigue siendo una mejora enorme frente a la fuerza bruta, cuyo crecimiento factorial la vuelve inviable mucho antes.
+\paragraph{Demostraci\'on.}
+La prueba se hace por inducci\'on sobre el n\'umero de tablones que faltan por regar.
 
-\section{Comparaci\'on de Estrategias}
+Para cada subconjunto \(M \subseteq U\), interpretamos \(DP(M)\) como el costo m\'inimo adicional desde el estado en el que ya fueron regados exactamente los tablones de \(M\) y el instante actual es \(\tau(M)\).
 
-La Tabla~\ref{tab:comparacion-estrategias} resume las principales diferencias entre los tres enfoques desarrollados.
+\textbf{Caso base.} Si \(M=U\), no queda ning\'un tabl\'on por regar. El costo adicional correcto es \(0\). El pseudoc\'odigo retorna precisamente \(0\), de modo que \(DP(U)\) es correcto.
 
-\begin{table}[ht]
-  \centering
-  \begin{tabularx}{\textwidth}{>{\bfseries}l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
-    \toprule
-    Estrategia & Complejidad temporal & Garant\'ia de optimalidad & Uso pr\'actico \\
-    \midrule
-    Fuerza bruta & \(O(n!\,n)\) & S\'i & Solo instancias muy peque\~nas; sirve como referencia exacta. \\
-    Voraz & \(O(n \log n)\) & No & Muy r\'apido; \'util para obtener una respuesta inmediata. \\
-    Programaci\'on din\'amica & \(O(n2^n)\) & S\'i & Exacta y mucho m\'as escalable que fuerza bruta para instancias moderadas. \\
-    \bottomrule
-  \end{tabularx}
-  \caption{Comparaci\'on general de las estrategias.}
-  \label{tab:comparacion-estrategias}
-\end{table}
+\textbf{Paso inductivo.} Supongamos que para todo subconjunto \(M'\) con a lo sumo \(r\) tablones pendientes, la funci\'on \texttt{Resolver(M')} devuelve correctamente el costo \'optimo adicional desde ese estado. Consideremos ahora un subconjunto \(M\) con exactamente \(r+1\) tablones pendientes.
 
-Desde el punto de vista de calidad de soluci\'on, fuerza bruta y programaci\'on din\'amica son los enfoques correctos para el problema general. La diferencia entre ellos est\'a en la eficiencia: la programaci\'on din\'amica evita recalcular subproblemas equivalentes y por eso reemplaza el crecimiento factorial por uno exponencial de base 2.
+Cualquier programaci\'on factible que contin\'ue desde \(M\) debe escoger primero un tabl\'on \(i \notin M\). Si esa decisi\'on se toma en el instante \(\tau(M)\), el costo total de esa rama se descompone necesariamente como:
+\[
+\cost{i}\bigl(\tau(M)\bigr) + \text{(costo \'optimo del resto desde } M \cup \{i\}\text{)}.
+\]
+Por hip\'otesis inductiva, el costo \'optimo del resto es exactamente \(DP(M \cup \{i\})\). Por tanto, para cada \(i \notin M\), el mejor costo posible de una soluci\'on que empieza con \(i\) es:
+\[
+\cost{i}\bigl(\tau(M)\bigr) + DP(M \cup \{i\}).
+\]
 
-Desde el punto de vista de tiempo de respuesta, el voraz es claramente superior. Su costo \(O(n\log n)\) lo hace apropiado para interfaces interactivas o escenarios en los que se necesite una estimaci\'on r\'apida. No obstante, los resultados observados en la bater\'ia del proyecto muestran que esta ganancia en velocidad tiene un precio importante en calidad: el voraz no captura adecuadamente la interacci\'on entre prioridad, margen de supervivencia y d\'ia perfecto.
+Como toda soluci\'on factible desde \(M\) debe empezar con alg\'un \(i \notin M\), el mejor costo posible desde \(M\) es precisamente el m\'inimo de esas cantidades:
+\[
+DP(M)=\min_{i \notin M}\left\{ \cost{i}\bigl(\tau(M)\bigr) + DP(M \cup \{i\}) \right\}.
+\]
+Eso es exactamente lo que calcula el pseudoc\'odigo. Luego \texttt{Resolver(M)} devuelve el costo \'optimo para todo subconjunto \(M\) con \(r+1\) tablones pendientes.
 
-En consecuencia, una arquitectura razonable para el proyecto es usar:
+Por inducci\'on, la recurrencia es correcta para todo subconjunto \(M \subseteq U\), y en particular para \(M=\varnothing\). As\'i, \texttt{Resolver(vac\'io)} produce el costo \'optimo global.
+
+Falta justificar la reconstrucci\'on. En cada estado \(M\), la variable \texttt{eleccion[M]} almacena un tabl\'on que alcanza el m\'inimo de la recurrencia. Al seguir iterativamente esas elecciones desde el estado vac\'io hasta \(U\), se construye una permutaci\'on \(\widehat{\Pi}\) cuyas decisiones locales coinciden con una cadena de subproblemas \'optimos. Por consiguiente, el costo de \(\widehat{\Pi}\) es exactamente \(DP(\varnothing)\), que ya se demostr\'o igual al m\'inimo global.
+
+En conclusi\'on, \texttt{roPD} siempre devuelve una soluci\'on \'optima.
+
+\section{Comparaci\'on de las tres soluciones implementadas}
+
+Para evaluar el desempe\~no de los tres enfoques (fuerza bruta, voraz y programaci\'on din\'amica) se dise\~n\'o una bater\'ia de casos de prueba que cubre distintos tama\~nos de finca y diferentes perfiles de tablones. A continuaci\'on se describe el dise\~no de estos casos y se presentan los resultados m\'as relevantes.
+
+\subsection{Dise\~no de casos de prueba}
+
+La comparaci\'on se apoy\'o en tres dise\~nos de prueba con objetivos distintos:
 
 \begin{itemize}
-  \item fuerza bruta como validador para instancias peque\~nas;
-  \item programaci\'on din\'amica como m\'etodo exacto principal;
-  \item voraz como alternativa r\'apida cuando el tama\~no de entrada o el contexto de uso desaconsejan un algoritmo exacto.
+  \item \textbf{Dise\~no 1: Casos reales del repositorio (tests 1 a 18).}
+  \begin{itemize}
+    \item \textbf{C\'omo se dise\~naron:} se tomaron las 18 fincas oficiales del repositorio junto con sus salidas \'optimas de referencia. Los tama\~nos cubiertos son \(n=5,6,7,8,10,15,20\).
+    \item \textbf{Prop\'osito:} usar una bater\'ia homog\'enea y con respuesta conocida para comparar exactitud, cercan\'ia al \'optimo y viabilidad pr\'actica de las tres soluciones.
+  \end{itemize}
+
+  \item \textbf{Dise\~no 2: Casos adicionales dise\~nados manualmente (F1 a F6).}
+  \begin{itemize}
+    \item \textbf{C\'omo se dise\~naron:} se fij\'o \(n=5\) para que fuerza bruta, voraz y programaci\'on din\'amica pudieran ejecutarse sin restricciones. Se variaron deliberadamente urgencia, prioridad y holgura, retomando la misma l\'ogica usada en la evaluaci\'on del voraz: \(margen=ts-tr\), \(rp \in [0,margen]\) y perfiles cr\'iticos, urgentes, balanceados, relajados y de largo plazo.
+    \item \textbf{Prop\'osito:} observar c\'omo cambian los resultados cuando no solo var\'ia el tama\~no, sino tambi\'en la estructura interna de la finca.
+    \item \textbf{Referencia:} v\'ease la Subsecci\'on~\ref{sec:voraz-evaluacion-experimental}, donde se desarrolla el an\'alisis experimental detallado y se reportan los resultados obtenidos con este dise\~no de perfiles.
+  \end{itemize}
+
+  \item \textbf{Dise\~no 3: Prueba complementaria con tres criterios voraces sobre los casos reales.}
+  \begin{itemize}
+    \item \textbf{C\'omo se dise\~n\'o:} sobre los mismos 18 tests del repositorio se reaplic\'o el componente voraz con tres configuraciones: el criterio implementado \(\frac{tr}{p}\) con desempate por \(ts-tr\), y dos criterios alternativos tomados de la comparaci\'on de criterios de la secci\'on del voraz: \(ts\) con desempate por \(\frac{tr}{p}\) y prioridad alta con desempate por \(\frac{tr}{p}\).
+    \item \textbf{Prop\'osito:} distinguir si el comportamiento observado depende solo del enfoque voraz como heur\'istica o tambi\'en del criterio concreto con el que se ordenan los tablones.
+    \item \textbf{Justificaci\'on:} los dos criterios alternativos se eligieron como los m\'as relevantes dentro de la comparaci\'on de criterios de la secci\'on del voraz para contrastarlos frente al criterio escogido sobre la bater\'ia oficial. En particular, \(ts\) con desempate por \(\frac{tr}{p}\) fue la mejor opci\'on que no utiliza \(\frac{tr}{p}\) como criterio principal, mientras que prioridad alta con desempate por \(\frac{tr}{p}\) aporta un contraste adicional centrado en la intuici\'on de prioridad. Esto permite ofrecer una comparaci\'on m\'as completa del panorama voraz sobre los casos proporcionados.
+  \end{itemize}
 \end{itemize}
+
+En s\'intesis, el Dise\~no 1 sostiene la comparaci\'on principal entre las tres soluciones, el Dise\~no 2 preserva la l\'ogica experimental usada para entender el comportamiento del voraz y el Dise\~no 3 ampl\'ia la comparaci\'on interna entre criterios heur\'isticos.
+
+\subsection{Resultados comparativos}
+
+Para cada caso se ejecutaron los tres algoritmos:
+\begin{itemize}
+  \item \textbf{Fuerza bruta (FB)}: en esta comparaci\'on se reporta solo para \(n \leq 8\), donde su tiempo fue razonable. Devuelve el costo \'optimo.
+  \item \textbf{Voraz (V)}: siempre ejecutable; se reporta su costo.
+  \item \textbf{Programaci\'on din\'amica (PD)}: ejecutable hasta \(n=20\); devuelve el costo \'optimo.
+\end{itemize}
+
+Para hacer m\'as clara la lectura, los resultados voraces se presentan en tres bloques:
+\begin{itemize}
+  \item \textbf{Criterio 1:} \(\frac{tr}{p}\) con desempate por \(ts-tr\).
+  \item \textbf{Criterio 2:} \(ts\) con desempate por \(\frac{tr}{p}\).
+  \item \textbf{Criterio 3:} prioridad alta con desempate por \(\frac{tr}{p}\).
+\end{itemize}
+
+En esta subsecci\'on se usan dos formas de resumir el \% exceso y conviene distinguirlas expl\'icitamente:
+\begin{itemize}
+  \item \textbf{Promedio global sobre los 18 tests:} se calcula promediando el \% exceso de todos los casos de la bater\'ia oficial y se usa para comparar la calidad general de un criterio frente a los otros.
+  \item \textbf{Promedio por tama\~no \(n\):} se calcula promediando solo los tests que comparten el mismo tama\~no de finca; este es el valor que se grafica en las figuras de tendencia.
+\end{itemize}
+
+\paragraph{Criterio 1: \(\frac{tr}{p}\) con desempate por \(ts-tr\).}
+\begin{itemize}
+  \item \textbf{Tabla:} detalle por test.
+  \item \textbf{Figura:} promedio del \% exceso agrupado por tama\~no \(n\).
+\end{itemize}
+
+\medskip
+
+\begin{table}[H]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabular}{cccccccc}
+    \toprule
+    Test & \(n\) & \multicolumn{1}{c}{Costo FB} & Costo voraz & Costo PD & Diferencia (V-\'Opt) & \% exceso & \textquestiondown V = \'Opt? \\
+    \midrule
+    1  & 5  & 44  & 59   & 44   & 15  & 34.09  & No \\
+    2  & 5  & 126 & 128  & 126  & 2   & 1.59   & No \\
+    3  & 5  & 38  & 57   & 38   & 19  & 50.00  & No \\
+    4  & 5  & 26  & 52   & 26   & 26  & 100.00 & No \\
+    5  & 6  & 193 & 193  & 193  & 0   & 0.00   & S\'i \\
+    6  & 6  & 256 & 288  & 256  & 32  & 12.50  & No \\
+    7  & 7  & 67  & 80   & 67   & 13  & 19.40  & No \\
+    8  & 7  & 294 & 302  & 294  & 8   & 2.72   & No \\
+    9  & 8  & 143 & 178  & 143  & 35  & 24.48  & No \\
+    10 & 8  & 522 & 534  & 522  & 12  & 2.30   & No \\
+    11 & 10 & --  & 762  & 698  & 64  & 9.17   & No \\
+    12 & 10 & --  & 638  & 526  & 112 & 21.29  & No \\
+    13 & 15 & --  & 1297 & 1276 & 21  & 1.65   & No \\
+    14 & 15 & --  & 2468 & 2460 & 8   & 0.33   & No \\
+    15 & 15 & --  & 1080 & 1030 & 50  & 4.85   & No \\
+    16 & 20 & --  & 3816 & 3758 & 58  & 1.54   & No \\
+    17 & 20 & --  & 2894 & 2861 & 33  & 1.15   & No \\
+    18 & 20 & --  & 1590 & 1512 & 78  & 5.16   & No \\
+    \bottomrule
+  \end{tabular}
+  \caption{Comparaci\'on de costos entre los tres algoritmos usando el criterio voraz implementado \(\frac{tr}{p}\) con desempate por \(ts-tr\). FB se reporta solo para \(n \leq 8\) (-- indica no reportado en esta comparaci\'on). El costo PD se toma como referencia \'optima.}
+  \label{tab:comparacion-costos}
+\end{table}
+\vspace{-0.45em}
+
+\vspace{-0.15em}
+
+\begin{figure}[H]
+  \centering
+  \setlength{\unitlength}{0.83mm}
+  \begin{picture}(185,76)
+    \linethickness{0.25mm}
+    \put(18,15){\vector(1,0){158}}
+    \put(18,15){\vector(0,1){54}}
+
+    \put(15,15){\line(1,0){3}}   \put(13,15){\makebox(0,0)[r]{\scriptsize 0}}
+    \put(15,25){\line(1,0){3}}   \put(13,25){\makebox(0,0)[r]{\scriptsize 10}}
+    \put(15,35){\line(1,0){3}}   \put(13,35){\makebox(0,0)[r]{\scriptsize 20}}
+    \put(15,45){\line(1,0){3}}   \put(13,45){\makebox(0,0)[r]{\scriptsize 30}}
+    \put(15,55){\line(1,0){3}}   \put(13,55){\makebox(0,0)[r]{\scriptsize 40}}
+    \put(15,65){\line(1,0){3}}   \put(13,65){\makebox(0,0)[r]{\scriptsize 50}}
+
+    \put(25,15){\line(0,1){2}}   \put(25,11){\makebox(0,0)[t]{\scriptsize 5}}
+    \put(45,15){\line(0,1){2}}   \put(45,11){\makebox(0,0)[t]{\scriptsize 6}}
+    \put(65,15){\line(0,1){2}}   \put(65,11){\makebox(0,0)[t]{\scriptsize 7}}
+    \put(85,15){\line(0,1){2}}   \put(85,11){\makebox(0,0)[t]{\scriptsize 8}}
+    \put(110,15){\line(0,1){2}}  \put(110,11){\makebox(0,0)[t]{\scriptsize 10}}
+    \put(140,15){\line(0,1){2}}  \put(140,11){\makebox(0,0)[t]{\scriptsize 15}}
+    \put(170,15){\line(0,1){2}}  \put(170,11){\makebox(0,0)[t]{\scriptsize 20}}
+
+    \put(98,4){\makebox(0,0){\scriptsize\textcolor{blue}{Tama\~no de la finca (\(n\))}}}
+    \put(7,71){\makebox(0,0)[r]{\scriptsize\textcolor{blue}{Exceso}}}
+    \put(7,66){\makebox(0,0)[r]{\scriptsize\textcolor{blue}{relativo (\%)}}}
+
+    {\color{blue}
+    \linethickness{0.35mm}
+    \qbezier(25,61)(35,39)(45,21)
+    \qbezier(45,21)(55,23)(65,26)
+    \qbezier(65,26)(75,27)(85,28)
+    \qbezier(85,28)(98,29)(110,30)
+    \qbezier(110,30)(125,24)(140,17)
+    \qbezier(140,17)(155,17)(170,18)
+    \put(25,61){\circle*{2.7}}
+    \put(45,21){\circle*{2.7}}
+    \put(65,26){\circle*{2.7}}
+    \put(85,28){\circle*{2.7}}
+    \put(110,30){\circle*{2.7}}
+    \put(140,17){\circle*{2.7}}
+    \put(170,18){\circle*{2.7}}
+    }
+
+    \put(29,64){\makebox(0,0)[lb]{\scriptsize\textcolor{black}{46.4}}}
+    \put(45,24){\makebox(0,0)[b]{\scriptsize\textcolor{black}{6.3}}}
+    \put(65,29){\makebox(0,0)[b]{\scriptsize\textcolor{black}{11.1}}}
+    \put(85,31){\makebox(0,0)[b]{\scriptsize\textcolor{black}{13.4}}}
+    \put(110,33){\makebox(0,0)[b]{\scriptsize\textcolor{black}{15.2}}}
+    \put(140,20){\makebox(0,0)[b]{\scriptsize\textcolor{black}{2.3}}}
+    \put(170,21){\makebox(0,0)[b]{\scriptsize\textcolor{black}{2.6}}}
+
+    {\color{green}
+    \linethickness{0.25mm}
+    \put(25,15){\line(1,0){145}}
+    \put(25,15){\circle{2.4}}
+    \put(45,15){\circle{2.4}}
+    \put(65,15){\circle{2.4}}
+    \put(85,15){\circle{2.4}}
+    \put(110,15){\circle{2.4}}
+    \put(140,15){\circle{2.4}}
+    \put(170,15){\circle{2.4}}
+    }
+
+    {\color{red}
+    \linethickness{0.25mm}
+    \put(25,15){\line(1,0){60}}
+    \put(25,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    \put(45,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    \put(65,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    \put(85,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    }
+
+    \put(116,61){\makebox(0,0)[l]{\scriptsize\textcolor{blue}{Voraz}}}
+    \put(116,55){\makebox(0,0)[l]{\scriptsize\textcolor{green}{PD}}}
+    \put(116,49){\makebox(0,0)[l]{\scriptsize\textcolor{red}{FB}}}
+    \put(109,61){\textcolor{blue}{\circle*{2.7}}}
+    \put(109,55){\textcolor{green}{\circle{2.4}}}
+    \put(109,49){\textcolor{red}{\makebox(0,0){\tiny$\blacktriangle$}}}
+  \end{picture}
+  \caption{Exceso relativo promedio por tama\~no de finca para el criterio voraz implementado \(\frac{tr}{p}\) con desempate por \(ts-tr\). Cada punto de la curva voraz representa el promedio del \% exceso de los tests con el mismo tama\~no \(n\), redondeado a una cifra decimal.}
+  \label{fig:tendencia-estrategias}
+\end{figure}
+\vspace{-0.25em}
+
+\paragraph{Lectura r\'apida del criterio 1.}
+\begin{itemize}
+  \item \textbf{Exactitud de los m\'etodos exactos.} En la Tabla~\ref{tab:comparacion-costos}, fuerza bruta y programaci\'on din\'amica coinciden siempre con el costo \'optimo en los casos donde se reportan. Esa misma idea aparece resumida en la Figura~\ref{fig:tendencia-estrategias}, donde ambas estrategias permanecen en la l\'inea base.
+  \item \textbf{Comportamiento del criterio implementado.} La Tabla~\ref{tab:comparacion-costos} muestra que la variante \(\frac{tr}{p}\) con desempate por \(ts-tr\) solo alcanza el \'optimo en 1 de los 18 tests y que sus mayores fallas se concentran en casos como el test 4, donde el exceso relativo llega al \(100\%\), y el test 12, donde la diferencia absoluta llega a \(112\).
+  \item \textbf{Tendencia por tama\~no.} La Figura~\ref{fig:tendencia-estrategias} evidencia que el promedio por tama\~no m\'as alto del criterio implementado ocurre en \(n=5\), debido a varios casos peque\~nos muy adversos, mientras que para \(n=15\) y \(n=20\) el promedio por tama\~no baja a alrededor de \(2.45\%\). Esto sugiere que, aunque el voraz no garantiza optimalidad, en instancias grandes puede comportarse como una heur\'istica competitiva cuando la prioridad es responder r\'apido.
+\end{itemize}
+
+\paragraph{Criterio 2: \(ts\) con desempate por \(\frac{tr}{p}\).}
+\begin{itemize}
+  \item \textbf{Tabla:} detalle por test para la variante alternativa.
+  \item \textbf{Figura:} promedio del \% exceso agrupado por tama\~no \(n\).
+\end{itemize}
+
+\begin{table}[H]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabular}{cccccccc}
+    \toprule
+    Test & \(n\) & \multicolumn{1}{c}{Costo FB} & Costo voraz alt. & Costo PD & Diferencia (Alt-\'Opt) & \% exceso & \textquestiondown Alt. = \'Opt? \\
+    \midrule
+    1  & 5  & 44  & 76   & 44   & 32   & 72.73  & No \\
+    2  & 5  & 126 & 158  & 126  & 32   & 25.40  & No \\
+    3  & 5  & 38  & 60   & 38   & 22   & 57.89  & No \\
+    4  & 5  & 26  & 36   & 26   & 10   & 38.46  & No \\
+    5  & 6  & 193 & 277  & 193  & 84   & 43.52  & No \\
+    6  & 6  & 256 & 282  & 256  & 26   & 10.16  & No \\
+    7  & 7  & 67  & 200  & 67   & 133  & 198.51 & No \\
+    8  & 7  & 294 & 378  & 294  & 84   & 28.57  & No \\
+    9  & 8  & 143 & 205  & 143  & 62   & 43.36  & No \\
+    10 & 8  & 522 & 714  & 522  & 192  & 36.78  & No \\
+    11 & 10 & --  & 1454 & 698  & 756  & 108.31 & No \\
+    12 & 10 & --  & 796  & 526  & 270  & 51.33  & No \\
+    13 & 15 & --  & 1782 & 1276 & 506  & 39.66  & No \\
+    14 & 15 & --  & 3008 & 2460 & 548  & 22.28  & No \\
+    15 & 15 & --  & 1522 & 1030 & 492  & 47.77  & No \\
+    16 & 20 & --  & 5686 & 3758 & 1928 & 51.30  & No \\
+    17 & 20 & --  & 3185 & 2861 & 324  & 11.32  & No \\
+    18 & 20 & --  & 2256 & 1512 & 744  & 49.21  & No \\
+    \bottomrule
+  \end{tabular}
+  \caption{Comparaci\'on de costos entre los tres algoritmos usando el criterio voraz alternativo \(ts\) con desempate por \(\frac{tr}{p}\). FB se reporta solo para \(n \leq 8\) (-- indica no reportado en esta comparaci\'on). El costo PD se toma como referencia \'optima.}
+  \label{tab:comparacion-costos-supervivencia}
+\end{table}
+\vspace{-0.35em}
+
+\begin{figure}[H]
+  \centering
+  \setlength{\unitlength}{0.83mm}
+  \begin{picture}(185,86)
+    \linethickness{0.25mm}
+    \put(18,15){\vector(1,0){158}}
+    \put(18,15){\vector(0,1){62}}
+
+    \put(15,15){\line(1,0){3}}   \put(13,15){\makebox(0,0)[r]{\scriptsize 0}}
+    \put(15,25){\line(1,0){3}}   \put(13,25){\makebox(0,0)[r]{\scriptsize 20}}
+    \put(15,35){\line(1,0){3}}   \put(13,35){\makebox(0,0)[r]{\scriptsize 40}}
+    \put(15,45){\line(1,0){3}}   \put(13,45){\makebox(0,0)[r]{\scriptsize 60}}
+    \put(15,55){\line(1,0){3}}   \put(13,55){\makebox(0,0)[r]{\scriptsize 80}}
+    \put(15,65){\line(1,0){3}}   \put(13,65){\makebox(0,0)[r]{\scriptsize 100}}
+    \put(15,75){\line(1,0){3}}   \put(13,75){\makebox(0,0)[r]{\scriptsize 120}}
+
+    \put(25,15){\line(0,1){2}}   \put(25,11){\makebox(0,0)[t]{\scriptsize 5}}
+    \put(45,15){\line(0,1){2}}   \put(45,11){\makebox(0,0)[t]{\scriptsize 6}}
+    \put(65,15){\line(0,1){2}}   \put(65,11){\makebox(0,0)[t]{\scriptsize 7}}
+    \put(85,15){\line(0,1){2}}   \put(85,11){\makebox(0,0)[t]{\scriptsize 8}}
+    \put(110,15){\line(0,1){2}}  \put(110,11){\makebox(0,0)[t]{\scriptsize 10}}
+    \put(140,15){\line(0,1){2}}  \put(140,11){\makebox(0,0)[t]{\scriptsize 15}}
+    \put(170,15){\line(0,1){2}}  \put(170,11){\makebox(0,0)[t]{\scriptsize 20}}
+
+    \put(98,4){\makebox(0,0){\scriptsize\textcolor{blue}{Tama\~no de la finca (\(n\))}}}
+    \put(7,81){\makebox(0,0)[r]{\scriptsize\textcolor{blue}{Exceso}}}
+    \put(7,76){\makebox(0,0)[r]{\scriptsize\textcolor{blue}{relativo (\%)}}}
+
+    {\color{blue}
+    \linethickness{0.35mm}
+    \qbezier(25,39)(35,34)(45,28)
+    \qbezier(45,28)(55,50)(65,72)
+    \qbezier(65,72)(75,53)(85,35)
+    \qbezier(85,35)(98,45)(110,55)
+    \qbezier(110,55)(125,43)(140,33)
+    \qbezier(140,33)(155,33)(170,34)
+    \put(25,39){\circle*{2.7}}
+    \put(45,28){\circle*{2.7}}
+    \put(65,72){\circle*{2.7}}
+    \put(85,35){\circle*{2.7}}
+    \put(110,55){\circle*{2.7}}
+    \put(140,33){\circle*{2.7}}
+    \put(170,34){\circle*{2.7}}
+    }
+
+    \put(29,42){\makebox(0,0)[lb]{\scriptsize\textcolor{black}{48.6}}}
+    \put(45,31){\makebox(0,0)[b]{\scriptsize\textcolor{black}{26.8}}}
+    \put(65,75){\makebox(0,0)[b]{\scriptsize\textcolor{black}{113.5}}}
+    \put(85,38){\makebox(0,0)[b]{\scriptsize\textcolor{black}{40.1}}}
+    \put(110,58){\makebox(0,0)[b]{\scriptsize\textcolor{black}{79.8}}}
+    \put(140,36){\makebox(0,0)[b]{\scriptsize\textcolor{black}{36.6}}}
+    \put(170,37){\makebox(0,0)[b]{\scriptsize\textcolor{black}{37.3}}}
+
+    {\color{green}
+    \linethickness{0.25mm}
+    \put(25,15){\line(1,0){145}}
+    \put(25,15){\circle{2.4}}
+    \put(45,15){\circle{2.4}}
+    \put(65,15){\circle{2.4}}
+    \put(85,15){\circle{2.4}}
+    \put(110,15){\circle{2.4}}
+    \put(140,15){\circle{2.4}}
+    \put(170,15){\circle{2.4}}
+    }
+
+    {\color{red}
+    \linethickness{0.25mm}
+    \put(25,15){\line(1,0){60}}
+    \put(25,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    \put(45,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    \put(65,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    \put(85,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    }
+
+    \put(114,76){\makebox(0,0)[l]{\scriptsize\textcolor{blue}{Voraz alt.}}}
+    \put(114,70){\makebox(0,0)[l]{\scriptsize\textcolor{green}{PD}}}
+    \put(114,64){\makebox(0,0)[l]{\scriptsize\textcolor{red}{FB}}}
+    \put(107,76){\textcolor{blue}{\circle*{2.7}}}
+    \put(107,70){\textcolor{green}{\circle{2.4}}}
+    \put(107,64){\textcolor{red}{\makebox(0,0){\tiny$\blacktriangle$}}}
+  \end{picture}
+  \caption{Exceso relativo promedio por tama\~no de finca para el criterio voraz alternativo \(ts\) con desempate por \(\frac{tr}{p}\). Cada punto de la curva representa el promedio del \% exceso de los tests con el mismo tama\~no \(n\), redondeado a una cifra decimal.}
+  \label{fig:tendencia-supervivencia}
+\end{figure}
+\vspace{-0.25em}
+
+\paragraph{Lectura r\'apida del criterio 2.}
+\begin{itemize}
+  \item \textbf{Sin coincidencias exactas.} La Tabla~\ref{tab:comparacion-costos-supervivencia} muestra que esta variante no alcanza el \'optimo en ninguno de los 18 tests.
+  \item \textbf{Errores m\'as altos.} Los casos m\'as cr\'iticos aparecen en \(n=7\) y \(n=10\), donde la diferencia absoluta y el \% exceso crecen con fuerza.
+  \item \textbf{Tendencia por tama\~no.} La Figura~\ref{fig:tendencia-supervivencia} confirma que el deterioro no es puntual: el promedio por tama\~no permanece alto en casi todos los tama\~nos de finca.
+\end{itemize}
+
+\paragraph{Criterio 3: prioridad alta con desempate por \(\frac{tr}{p}\).}
+\begin{itemize}
+  \item \textbf{Tabla:} detalle por test para la variante centrada en prioridad.
+  \item \textbf{Figura:} promedio del \% exceso agrupado por tama\~no \(n\).
+\end{itemize}
+
+\begin{table}[H]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabular}{cccccccc}
+    \toprule
+    Test & \(n\) & \multicolumn{1}{c}{Costo FB} & Costo voraz prio. & Costo PD & Diferencia (Prio-\'Opt) & \% exceso & \textquestiondown Prio. = \'Opt? \\
+    \midrule
+    1  & 5  & 44  & 57   & 44   & 13  & 29.55  & No \\
+    2  & 5  & 126 & 160  & 126  & 34  & 26.98  & No \\
+    3  & 5  & 38  & 57   & 38   & 19  & 50.00  & No \\
+    4  & 5  & 26  & 52   & 26   & 26  & 100.00 & No \\
+    5  & 6  & 193 & 193  & 193  & 0   & 0.00   & S\'i \\
+    6  & 6  & 256  & 344  & 256  & 88  & 34.38  & No \\
+    7  & 7  & 67  & 88   & 67   & 21  & 31.34  & No \\
+    8  & 7  & 294 & 366  & 294  & 72  & 24.49  & No \\
+    9  & 8  & 143 & 172  & 143  & 29  & 20.28  & No \\
+    10 & 8  & 522 & 538  & 522  & 16  & 3.07   & No \\
+    11 & 10 & --  & 792  & 698  & 94  & 13.47  & No \\
+    12 & 10 & --  & 725  & 526  & 199 & 37.83  & No \\
+    13 & 15 & --  & 1426 & 1276 & 150 & 11.76  & No \\
+    14 & 15 & --  & 2833 & 2460 & 373 & 15.16  & No \\
+    15 & 15 & --  & 1146 & 1030 & 116 & 11.26  & No \\
+    16 & 20 & --  & 4150 & 3758 & 392 & 10.43  & No \\
+    17 & 20 & --  & 3425 & 2861 & 564 & 19.71  & No \\
+    18 & 20 & --  & 1862 & 1512 & 350 & 23.15  & No \\
+    \bottomrule
+  \end{tabular}
+  \caption{Comparaci\'on de costos entre los tres algoritmos usando el criterio voraz alternativo prioridad alta con desempate por \(\frac{tr}{p}\). FB se reporta solo para \(n \leq 8\) (-- indica no reportado en esta comparaci\'on). El costo PD se toma como referencia \'optima.}
+  \label{tab:comparacion-costos-prioridad}
+\end{table}
+\vspace{-0.35em}
+
+\begin{figure}[H]
+  \centering
+  \setlength{\unitlength}{0.83mm}
+  \begin{picture}(185,78)
+    \linethickness{0.25mm}
+    \put(18,15){\vector(1,0){158}}
+    \put(18,15){\vector(0,1){56}}
+
+    \put(15,15){\line(1,0){3}}   \put(13,15){\makebox(0,0)[r]{\scriptsize 0}}
+    \put(15,25){\line(1,0){3}}   \put(13,25){\makebox(0,0)[r]{\scriptsize 10}}
+    \put(15,35){\line(1,0){3}}   \put(13,35){\makebox(0,0)[r]{\scriptsize 20}}
+    \put(15,45){\line(1,0){3}}   \put(13,45){\makebox(0,0)[r]{\scriptsize 30}}
+    \put(15,55){\line(1,0){3}}   \put(13,55){\makebox(0,0)[r]{\scriptsize 40}}
+    \put(15,65){\line(1,0){3}}   \put(13,65){\makebox(0,0)[r]{\scriptsize 50}}
+
+    \put(25,15){\line(0,1){2}}   \put(25,11){\makebox(0,0)[t]{\scriptsize 5}}
+    \put(45,15){\line(0,1){2}}   \put(45,11){\makebox(0,0)[t]{\scriptsize 6}}
+    \put(65,15){\line(0,1){2}}   \put(65,11){\makebox(0,0)[t]{\scriptsize 7}}
+    \put(85,15){\line(0,1){2}}   \put(85,11){\makebox(0,0)[t]{\scriptsize 8}}
+    \put(110,15){\line(0,1){2}}  \put(110,11){\makebox(0,0)[t]{\scriptsize 10}}
+    \put(140,15){\line(0,1){2}}  \put(140,11){\makebox(0,0)[t]{\scriptsize 15}}
+    \put(170,15){\line(0,1){2}}  \put(170,11){\makebox(0,0)[t]{\scriptsize 20}}
+
+    \put(98,4){\makebox(0,0){\scriptsize\textcolor{blue}{Tama\~no de la finca (\(n\))}}}
+    \put(7,71){\makebox(0,0)[r]{\scriptsize\textcolor{blue}{Exceso}}}
+    \put(7,66){\makebox(0,0)[r]{\scriptsize\textcolor{blue}{relativo (\%)}}}
+
+    {\color{blue}
+    \linethickness{0.35mm}
+    \qbezier(25,67)(35,50)(45,32)
+    \qbezier(45,32)(55,38)(65,43)
+    \qbezier(65,43)(75,35)(85,27)
+    \qbezier(85,27)(98,36)(110,41)
+    \qbezier(110,41)(125,34)(140,28)
+    \qbezier(140,28)(155,29)(170,33)
+    \put(25,67){\circle*{2.7}}
+    \put(45,32){\circle*{2.7}}
+    \put(65,43){\circle*{2.7}}
+    \put(85,27){\circle*{2.7}}
+    \put(110,41){\circle*{2.7}}
+    \put(140,28){\circle*{2.7}}
+    \put(170,33){\circle*{2.7}}
+    }
+
+    \put(29,69){\makebox(0,0)[lb]{\scriptsize\textcolor{black}{51.6}}}
+    \put(45,35){\makebox(0,0)[b]{\scriptsize\textcolor{black}{17.2}}}
+    \put(65,46){\makebox(0,0)[b]{\scriptsize\textcolor{black}{27.9}}}
+    \put(85,30){\makebox(0,0)[b]{\scriptsize\textcolor{black}{11.7}}}
+    \put(110,44){\makebox(0,0)[b]{\scriptsize\textcolor{black}{25.6}}}
+    \put(140,31){\makebox(0,0)[b]{\scriptsize\textcolor{black}{12.7}}}
+    \put(170,36){\makebox(0,0)[b]{\scriptsize\textcolor{black}{17.8}}}
+
+    {\color{green}
+    \linethickness{0.25mm}
+    \put(25,15){\line(1,0){145}}
+    \put(25,15){\circle{2.4}}
+    \put(45,15){\circle{2.4}}
+    \put(65,15){\circle{2.4}}
+    \put(85,15){\circle{2.4}}
+    \put(110,15){\circle{2.4}}
+    \put(140,15){\circle{2.4}}
+    \put(170,15){\circle{2.4}}
+    }
+
+    {\color{red}
+    \linethickness{0.25mm}
+    \put(25,15){\line(1,0){60}}
+    \put(25,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    \put(45,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    \put(65,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    \put(85,15){\makebox(0,0){\tiny$\blacktriangle$}}
+    }
+
+    \put(116,61){\makebox(0,0)[l]{\scriptsize\textcolor{blue}{Voraz prio.}}}
+    \put(116,55){\makebox(0,0)[l]{\scriptsize\textcolor{green}{PD}}}
+    \put(116,49){\makebox(0,0)[l]{\scriptsize\textcolor{red}{FB}}}
+    \put(109,61){\textcolor{blue}{\circle*{2.7}}}
+    \put(109,55){\textcolor{green}{\circle{2.4}}}
+    \put(109,49){\textcolor{red}{\makebox(0,0){\tiny$\blacktriangle$}}}
+  \end{picture}
+  \caption{Exceso relativo promedio por tama\~no de finca para el criterio voraz alternativo prioridad alta con desempate por \(\frac{tr}{p}\). Cada punto de la curva representa el promedio del \% exceso de los tests con el mismo tama\~no \(n\), redondeado a una cifra decimal.}
+  \label{fig:tendencia-prioridad}
+\end{figure}
+\vspace{-0.25em}
+
+\paragraph{Lectura r\'apida del criterio 3.}
+\begin{itemize}
+  \item \textbf{Una coincidencia exacta.} La Tabla~\ref{tab:comparacion-costos-prioridad} muestra que esta variante coincide con el \'optimo en 1 de los 18 tests.
+  \item \textbf{Resultado intermedio.} Su exceso relativo promedio global sobre los 18 tests es mayor que el del criterio implementado, pero claramente menor que el del criterio \(ts\).
+  \item \textbf{Tendencia por tama\~no.} La Figura~\ref{fig:tendencia-prioridad} muestra un comportamiento m\'as estable que el criterio \(ts\), aunque todav\'ia sensiblemente peor que \(\frac{tr}{p}\) con desempate por \(ts-tr\).
+\end{itemize}
+
+\paragraph{Contraste entre los tres criterios voraces.}
+\begin{itemize}
+  \item \textbf{Mejor criterio en la bater\'ia oficial.} Entre los tres comparados, \(\frac{tr}{p}\) con desempate por \(ts-tr\) sigue siendo el mejor: alcanza el menor exceso relativo promedio global sobre los 18 tests (\(16.23\%\)).
+  \item \textbf{Segundo lugar.} Prioridad alta con desempate por \(\frac{tr}{p}\) ocupa una posici\'on intermedia, con exceso relativo promedio global de \(25.71\%\).
+  \item \textbf{Criterio m\'as d\'ebil en esta bater\'ia.} El criterio \(ts\) con desempate por \(\frac{tr}{p}\) resulta el m\'as costoso en el conjunto de 18 tests, con exceso relativo promedio global de \(52.03\%\) y ninguna coincidencia exacta con el \'optimo.
+  \item \textbf{Lectura global.} La comparaci\'on conjunta de las Tablas~\ref{tab:comparacion-costos}, \ref{tab:comparacion-costos-supervivencia} y \ref{tab:comparacion-costos-prioridad}, junto con las Figuras~\ref{fig:tendencia-estrategias}, \ref{fig:tendencia-supervivencia} y \ref{fig:tendencia-prioridad}, refuerza que el rendimiento del componente voraz depende fuertemente del criterio principal usado para ordenar los tablones.
+\end{itemize}
+
+\paragraph{Aporte interpretativo del Dise\~no 2 a la justificaci\'on del criterio voraz.}
+\begin{itemize}
+  \item \textbf{Funci\'on distinta.} A diferencia de los Dise\~nos 1 y 3, el Dise\~no 2 no se usa aqu\'i para comparar criterios sobre la bater\'ia oficial, sino para interpretar el comportamiento del criterio voraz elegido.
+  \item \textbf{Aporte a la justificaci\'on.} Mediante perfiles controlados de finca, permite identificar de forma resumida d\'onde la regla \(\frac{tr}{p}\) con desempate por \(ts-tr\) destaca, d\'onde se modera y d\'onde flaquea.
+  \item \textbf{Lectura complementaria.} Por eso, el Dise\~no 2 debe leerse como apoyo breve para la elecci\'on y justificaci\'on del criterio, mientras que los Dise\~nos 1 y 3 sostienen la comparaci\'on cuantitativa presentada en tablas y figuras.
+\end{itemize}
+
+\subsection{Ventajas y desventajas de cada enfoque en la pr\'actica}
+
+A partir de los resultados obtenidos y del an\'alisis de complejidad, se pueden resumir las principales ventajas y desventajas de cada estrategia:
+
+\begin{table}[H]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.19\textwidth}>{\centering\arraybackslash}p{0.13\textwidth}>{\centering\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+    \toprule
+    Estrategia & Complejidad en tiempo & Complejidad en espacio & Ventajas importantes & Desventajas \\
+    \midrule
+    \textbf{Fuerza bruta} &
+    \(O(n! \cdot n)\) &
+    \(O(n)\) &
+    Garantiza la soluci\'on \'optima, es conceptualmente simple y sirve como referencia para validar instancias peque\~nas. &
+    Se vuelve inviable muy r\'apido y no ofrece escalabilidad pr\'actica. \\
+    \midrule
+    \textbf{Voraz} &
+    \(O(n \log n)\) &
+    \(O(n)\) &
+    Es la alternativa m\'as r\'apida, funciona para cualquier tama\~no de entrada y en muchos casos produce costos cercanos al \'optimo. &
+    No garantiza optimalidad y su rendimiento depende de la estructura de la instancia. \\
+    \midrule
+    \textbf{Programaci\'on din\'amica} &
+    \(O(n2^n)\) &
+    \(O(2^n)\) &
+    Garantiza la soluci\'on \'optima y mejora dr\'asticamente a la fuerza bruta en instancias moderadas. &
+    El crecimiento exponencial en tiempo y memoria la limita a tama\~nos moderados. \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Comparaci\'on entre complejidad en tiempo, complejidad en espacio, ventajas importantes y desventajas de las tres estrategias.}
+\end{table}
 
 \section{Conclusiones}
 
-El problema del riego \'optimo no puede resolverse correctamente con una intuici\'on local simple, porque el costo de cada tabl\'on depende del instante exacto en que comienza su riego y ese instante, a su vez, depende de todas las decisiones previas. Esa dependencia global explica por qu\'e el enfoque voraz, aunque eficiente, no siempre logra soluciones \'optimas.
+Este proyecto muestra que no existe una estrategia universalmente superior para todas las instancias del problema. La conveniencia de cada soluci\'on depende del tama\~no de la finca, de la criticidad de la decisi\'on, de la disponibilidad de recursos computacionales y del grado de error que sea aceptable en la aplicaci\'on. Desde esa perspectiva, fuerza bruta, voraz y programaci\'on din\'amica no compiten solo como algoritmos, sino como respuestas distintas a necesidades tambi\'en distintas.
 
-La fuerza bruta ofrece una soluci\'on conceptualmente sencilla y totalmente correcta, pero su complejidad factorial la limita a instancias muy peque\~nas. La programaci\'on din\'amica, en cambio, aprovecha la subestructura \'optima del problema y permite obtener soluciones exactas con una mejora sustancial en eficiencia. Aun as\'i, su crecimiento exponencial impone un l\'imite pr\'actico para valores grandes de \(n\).
+La fuerza bruta aporta una ventaja t\'ecnica fundamental: garantiza el \'optimo global y permite verificar con total certeza el comportamiento de las dem\'as estrategias. Esa propiedad la convierte en un excelente mecanismo de validaci\'on te\'orica y experimental para instancias peque\~nas. Sin embargo, su complejidad en tiempo \(O(n! \cdot n)\) impone un l\'imite pr\'actico muy estricto; en este trabajo solo result\'o razonable en tama\~nos reducidos, de modo que su papel natural queda acotado a servir como referencia exacta, no como soluci\'on operativa escalable.
 
-En este proyecto, la mejor relaci\'on entre exactitud y escalabilidad la ofrece la programaci\'on din\'amica. El algoritmo voraz resulta valioso como heur\'istica y como punto de comparaci\'on experimental, pero no reemplaza un m\'etodo exacto cuando se requiere garantizar optimalidad. La comparaci\'on entre los tres enfoques muestra precisamente la idea central del curso: distintas estrategias de dise\~no algor\'itmico pueden modelar el mismo problema, pero sus beneficios y limitaciones son profundamente diferentes.
+La programaci\'on din\'amica representa la alternativa adecuada cuando la informaci\'on es cr\'itica y obtener una soluci\'on \'optima justifica un mayor consumo de tiempo y memoria. La formalizaci\'on del problema mediante subestructura \'optima y recurrencia permite construir una soluci\'on exacta con fundamentos te\'oricos s\'olidos, y en el dise\~no de pruebas mostr\'o un desempe\~no correcto en los tama\~nos moderados considerados. No obstante, su complejidad en tiempo \(O(n2^n)\) y su complejidad en espacio \(O(2^n)\) obligan a delimitar cuidadosamente el tama\~no del problema: en este proyecto se mantuvo como opci\'on viable hasta alrededor de \(n=20\), pero a mayor escala tambi\'en termina volvi\'endose computacionalmente inviable.
+
+El enfoque voraz, por su parte, ofrece la mejor respuesta cuando la eficiencia es prioritaria y se necesita procesar instancias grandes con rapidez. Su costo \(O(n \log n)\) lo hace claramente m\'as liviano que la b\'usqueda exhaustiva y que la programaci\'on din\'amica, aunque esa ventaja exige aceptar que no siempre producir\'a el \'optimo. Los experimentos mostraron precisamente que la naturaleza del problema juega un papel decisivo: seg\'un el perfil de los tablones, el criterio elegido puede destacar, moderarse o fallar. Aun as\'i, tanto el an\'alisis te\'orico como la evidencia experimental justifican que una sobreestimaci\'on controlada del costo puede ser aceptable cuando se compara con el precio computacional de aplicar un m\'etodo exacto.
+
+En conjunto, los resultados permiten sostener que la decisi\'on algor\'itmica debe tomarse con criterios expl\'icitos: hasta qu\'e tama\~no puede crecer la instancia, cu\'anto importa la optimalidad exacta, cu\'ales recursos computacionales est\'an disponibles y qu\'e nivel de desviaci\'on puede tolerarse. La programaci\'on din\'amica muestra el valor de formalizar rigurosamente la estructura del problema para acercarse a la mejor soluci\'on posible, mientras que el voraz demuestra que, aun cuando la naturaleza de la instancia no siempre favorece la voracidad, sigue siendo una opci\'on t\'ecnicamente valiosa cuando se necesitan respuestas r\'apidas y bien fundamentadas. Ese equilibrio entre teor\'ia, modelaci\'on y validaci\'on experimental es, en \'ultima instancia, la principal ense\~nanza que deja el proyecto.
 
 \end{document}
