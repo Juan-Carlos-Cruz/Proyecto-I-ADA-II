@@ -23,8 +23,23 @@ __pycache__/
 #informe
 
 /docs/informe/informe_proyecto_riego.aux
+/docs/informe/informe_proyecto_riego.fdb_latexmk
+/docs/informe/informe_proyecto_riego.fls
 /docs/informe/informe_proyecto_riego.log
 /docs/informe/informe_proyecto_riego.out
 /docs/informe/informe_proyecto_riego.synctex.gz
 /docs/informe/informe_proyecto_riego.toc
 /docs/informe/informe_proyecto_riego.pdf
+
+#presentacion
+
+/docs/presentacion/presentacion_riego.aux
+/docs/presentacion/presentacion_riego.fdb_latexmk
+/docs/presentacion/presentacion_riego.fls
+/docs/presentacion/presentacion_riego.log
+/docs/presentacion/presentacion_riego.nav
+/docs/presentacion/presentacion_riego.out
+/docs/presentacion/presentacion_riego.pdf
+/docs/presentacion/presentacion_riego.snm
+/docs/presentacion/presentacion_riego.synctex.gz
+/docs/presentacion/presentacion_riego.toc

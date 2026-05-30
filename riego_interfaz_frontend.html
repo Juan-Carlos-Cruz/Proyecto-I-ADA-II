@@ -47,53 +47,47 @@
       <div class="screen-shell">
         <div class="card hero-card">
           <div class="hero-copy">
-            <span class="eyebrow">Dashboard de optimizacion agricola</span>
+            <span class="eyebrow">Optimizacion de riego</span>
             <div class="farm-header hero-header">
               <span class="farm-icon">🌾</span>
               <div>
                 <div class="farm-title">Plan de Riego Optimo</div>
-                <div class="farm-subtitle">Calcula el orden ideal para regar tu finca con una interfaz mas clara, visual y lista para conectarse al backend.</div>
+                <div class="farm-subtitle">Carga una finca, elige un algoritmo y revisa el plan de riego calculado.</div>
               </div>
             </div>
             <div class="hero-benefits">
               <div class="benefit-chip">
-                <strong>Carga estructurada</strong>
-                Importa un archivo `.txt` con los tablones y sus parametros.
+                <strong>Carga la finca</strong>
+                Importa el archivo `.txt` de entrada.
               </div>
               <div class="benefit-chip">
-                <strong>Compara estrategias</strong>
-                Evalua fuerza bruta, enfoque voraz o programacion dinamica.
+                <strong>Elige estrategia</strong>
+                Usa fuerza bruta, voraz o programacion dinamica.
               </div>
               <div class="benefit-chip">
-                <strong>Lee resultados rapido</strong>
-                Visualiza costo, secuencia y detalle por tablones.
+                <strong>Revisa el resultado</strong>
+                Consulta costo, orden y detalle por tablones.
               </div>
             </div>
-            <button class="btn" style="max-width:320px" onclick="goTo('benchmark')">
-              Analisis comparativo (varias fincas) &#x2192;
-            </button>
           </div>
 
           <div class="hero-panel">
-            <div class="hero-panel-title">Flujo de trabajo</div>
-            <div class="hero-panel-copy">La interfaz mantiene el recorrido actual de tres pasos, pero con una jerarquia mas fuerte para revisar datos, escoger algoritmo y leer el resultado con menos friccion.</div>
+            <div class="hero-panel-title">Resumen</div>
+            <div class="hero-panel-copy">El flujo principal se resuelve en tres pasos y con una entrada simple.</div>
             <div class="quick-stat">
               <div class="quick-stat-value">3</div>
-              <div class="quick-stat-label">pasos guiados dentro del mismo panel</div>
+              <div class="quick-stat-label">pasos para cargar, configurar y obtener el resultado</div>
             </div>
             <div class="quick-stat">
               <div class="quick-stat-value">.txt</div>
-              <div class="quick-stat-label">entrada simple con `n`, `ts`, `tr`, `p`, `rp`</div>
-            </div>
-            <div class="quick-stat">
-              <div class="quick-stat-value">C++</div>
-              <div class="quick-stat-label">resultado preparado para integracion con backend</div>
+              <div class="quick-stat-label">entrada con `n` y filas `ts,tr,p,rp`</div>
             </div>
           </div>
         </div>
 
         <div class="welcome-grid">
           <div class="card upload-card">
+            <div class="section-label">Desarrollo del proyecto</div>
             <div class="section-label">Cargar finca</div>
             <div class="section-title">Sube el archivo con los tablones</div>
             <div class="section-copy">Selecciona el `.txt` de entrada y pasa directamente a la configuracion del algoritmo. El formato se mantiene simple para facilitar pruebas y demostraciones.</div>
@@ -138,6 +132,48 @@
                 <span>Dia ideal de inicio para lograr riego perfecto.</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="card comparative-entry-card">
+          <div class="comparative-entry-copy">
+            <div class="section-label">Analisis comparativo</div>
+            <div class="section-title">Compara varias fincas en una sola corrida</div>
+            <div class="section-copy">Este bloque no solo ejecuta varias fincas: tambien organiza los resultados para que puedas leer el comportamiento global de las estrategias y apoyar el analisis del informe.</div>
+            <div class="comparative-entry-highlights">
+              <div class="comparative-entry-highlight">
+                <div class="comparative-entry-highlight-title">Grafico comparativo</div>
+                <div class="comparative-entry-highlight-copy">Visualiza como cambian los costos de DP y Voraz a medida que crece n.</div>
+              </div>
+              <div class="comparative-entry-highlight">
+                <div class="comparative-entry-highlight-title">Tabla por finca</div>
+                <div class="comparative-entry-highlight-copy">Revisa costo, diferencia, porcentaje y tiempos para cada caso cargado.</div>
+              </div>
+              <div class="comparative-entry-highlight">
+                <div class="comparative-entry-highlight-title">Laboratorio Voraz</div>
+                <div class="comparative-entry-highlight-copy">Prueba criterios y desempates con las mismas fincas del comparativo.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="comparative-entry-panel">
+            <div class="comparative-entry-list">
+              <div class="comparative-entry-item">
+                <strong>Carga multiple</strong>
+                <span>Sube varios archivos para ejecutar el comparativo sobre un conjunto de casos.</span>
+              </div>
+              <div class="comparative-entry-item">
+                <strong>Comparacion de costos</strong>
+                <span>Contrasta los resultados de fuerza bruta, voraz y programacion dinamica cuando corresponde.</span>
+              </div>
+              <div class="comparative-entry-item">
+                <strong>Lectura global</strong>
+                <span>Resume diferencias promedio, porcentaje de coincidencias exactas y apoyo para el analisis del informe.</span>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="max-width:320px" onclick="goTo('benchmark')">
+              Abrir analisis comparativo &#x2192;
+            </button>
           </div>
         </div>
       </div>

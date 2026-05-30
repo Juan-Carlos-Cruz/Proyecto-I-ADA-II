@@ -44,7 +44,10 @@
 .header-copy,
 .algo-panel,
 .loading-card,
-.cost-display {
+.cost-display,
+.comparative-entry-copy,
+.comparative-entry-panel,
+.comparative-entry-item {
   display: grid;
 }
 
@@ -97,9 +100,27 @@
   gap: 22px;
 }
 
+.comparative-entry-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.95fr);
+  gap: 22px;
+}
+
 .welcome-grid,
 .result-layout {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.comparative-entry-copy,
+.comparative-entry-panel,
+.comparative-entry-list,
+.comparative-entry-highlights {
+  display: grid;
+  gap: 14px;
+}
+
+.comparative-entry-highlights {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .upload-card,

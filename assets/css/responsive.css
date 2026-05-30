@@ -1,5 +1,6 @@
 @media (max-width: 960px) {
   .hero-card,
+  .comparative-entry-card,
   .config-layout,
   .result-layout,
   .welcome-grid,
@@ -9,6 +10,10 @@
 
   .hero-benefits,
   .summary-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .comparative-entry-highlights {
     grid-template-columns: 1fr;
   }
 
@@ -60,6 +65,7 @@
   .hero-benefits,
   .legend-grid,
   .summary-strip,
+  .comparative-entry-highlights,
   .algo-grid,
   .action-row,
   .benchmark-action-row,

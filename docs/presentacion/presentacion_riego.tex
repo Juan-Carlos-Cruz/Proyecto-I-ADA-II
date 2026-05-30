@@ -38,7 +38,7 @@
 \begin{document}
 
 \begin{frame}
-  \vspace{1.2cm}
+  \vspace{1.0cm}
   \begin{beamercolorbox}[wd=\textwidth,rounded=true,sep=0.6cm,center]{block title}
     {\color{white}\rmfamily\bfseries\Large Plan de Riego \'Optimo de una Finca}
   \end{beamercolorbox}
@@ -83,7 +83,7 @@
       c_i^\Pi=
       \begin{cases}
       ts_i-(t_i^\Pi+tr_i), & t_i^\Pi=rp_i,\\
-      2\left|ts_i-(t_i^\Pi+tr_i)\right|, &
+      2\left(ts_i-(t_i^\Pi+tr_i)\right), &
       t_i^\Pi\le ts_i-tr_i,\ t_i^\Pi\neq rp_i,\\
       2p_i\big((t_i^\Pi+tr_i)-ts_i\big), &
       t_i^\Pi>ts_i-tr_i.
@@ -126,48 +126,166 @@
   \end{block}
 \end{frame}
 
-\begin{frame}{Criterio voraz implementado}
+\begin{frame}{Fuerza bruta: idea y papel pr\'actico}
   \begin{columns}[T,onlytextwidth]
-    \column{0.42\textwidth}
-    \begin{block}{Regla de orden}
-      \[
-      \rho_i=\frac{tr_i}{p_i},
-      \qquad
-      h_i=ts_i-tr_i
-      \]
-      \begin{enumerate}\small
-        \item Ordenar por \(\rho_i\) ascendente.
-        \item Si empatan, ordenar por \(h_i\) ascendente.
-        \item Si vuelven a empatar, conservar el menor \'indice.
+    \column{0.47\textwidth}
+    \scriptsize
+    \begin{block}{Idea del algoritmo}
+      \begin{enumerate}
+        \item Generar todas las permutaciones de los \(n\) tablones.
+        \item Evaluar el costo total de cada orden.
+        \item Conservar la mejor permutaci\'on encontrada.
       \end{enumerate}
-      \vspace{0.2em}
-      \centering
-      \scriptsize \(\frac{tr}{p}\) balancea duraci\'on del riego y castigo por retraso.
+      En la implementaci\'on se usa \texttt{next\_permutation}.
+    \end{block}
+
+    \begin{alertblock}{Garant\'ia}
+      Recorre todo el espacio factible y, por construcci\'on, devuelve una permutaci\'on de costo \'optimo.
+    \end{alertblock}
+
+    \column{0.47\textwidth}
+    \scriptsize
+    \begin{block}{Aplicaci\'on a los ejemplos}
+      \begin{tabular}{@{}lccc@{}}
+        \toprule
+        Finca & \(n\) & Permutaciones & Costo \'optimo \\
+        \midrule
+        \(F_1\) & 5 & \(5!=120\) & 20 \\
+        \(F_2\) & 5 & \(5!=120\) & 32 \\
+        \bottomrule
+      \end{tabular}
+      \[
+      \Pi^\star_{F_1}=\Pi^\star_{F_2}=\langle 2,1,0,3,4\rangle
+      \]
+    \end{block}
+
+    \begin{block}{L\'imite}
+      \[
+      T_{\texttt{roFB}}(n)=O(n!\,n)
+      \]
+      Exacta, pero pr\'actica solo en instancias peque\~nas. En la comparaci\'on del proyecto se report\'o solo hasta \(n\le 8\).
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Programaci\'on din\'amica: idea central}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+    \small
+    \begin{block}{Estado del subproblema}
+      Implementaci\'on \textit{top-down} con memoizaci\'on. El estado queda determinado por el conjunto \(M\) de tablones ya regados.
+      \[
+      \tau(M)=\sum_{i\in M} tr_i
+      \]
+      \[
+      DP(M)=\text{costo m\'inimo restante desde } M
+      \]
+    \end{block}
+
+    \begin{block}{Recurrencia}
+      \[
+      DP(M)=
+      \min_{i\notin M}
+      \left\{
+      c_i(\tau(M))+DP(M\cup\{i\})
+      \right\}
+      \]
+      con caso base \(DP(U)=0\).
+    \end{block}
+
+    \column{0.46\textwidth}
+    \small
+    \begin{block}{Reconstrucci\'on}
+      Se guarda en \(\texttt{eleccion}[M]\) el tabl\'on que minimiza la recurrencia y luego se reconstruye la permutaci\'on \'optima siguiendo:
+      \[
+      \varnothing \to M_1 \to M_2 \to \cdots \to U.
+      \]
     \end{block}
 
     \begin{alertblock}{Complejidad}
       \[
-      T_{\texttt{roV}}(n)=O(n)+O(n\log n)+O(n)
+      T_{\texttt{roPD}}(n)=O(n2^n),
+      \qquad
+      S_{\texttt{roPD}}(n)=O(2^n)
       \]
-      \[
-      T_{\texttt{roV}}(n)=\Theta(n\log n)
-      \]
+      Mucho mejor que fuerza bruta, aunque sigue siendo exponencial.
     \end{alertblock}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Programaci\'on din\'amica: exactitud y resultados}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.46\textwidth}
+    \scriptsize
+    \begin{block}{Resultados en los ejemplos}
+      \begin{tabular}{@{}lcc@{}}
+        \toprule
+        Finca & \(\Pi^\star\) & Costo \\
+        \midrule
+        \(F_1\) & \(\langle 2,1,0,3,4\rangle\) & 20 \\
+        \(F_2\) & \(\langle 2,1,0,3,4\rangle\) & 32 \\
+        \bottomrule
+      \end{tabular}
+    \end{block}
+
+    \begin{block}{Correcci\'on}
+      La PD es exacta porque:
+      \begin{itemize}
+        \item el problema tiene subestructura \'optima;
+        \item la recurrencia eval\'ua todas las transiciones posibles;
+        \item la memoizaci\'on evita recomputar estados.
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \scriptsize
+    \begin{block}{Evidencia experimental}
+      En los 18 casos oficiales con salida de referencia:
+      \begin{itemize}
+        \item PD coincidi\'o con el costo \'optimo en todos los casos;
+        \item esa columna se us\'o como referencia \'optima para medir el error del voraz.
+      \end{itemize}
+    \end{block}
+
+    \begin{alertblock}{Utilidad pr\'actica}
+      En el proyecto, PD fue viable hasta \(n\approx 20\).
+      \begin{itemize}
+        \item Para \(n=32\): \(137{,}438{,}953{,}472\) operaciones.
+        \item Estimaci\'on pr\'actica: 458 min y 16 GB de memoria base.
+      \end{itemize}
+    \end{alertblock}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Criterio voraz implementado}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.42\textwidth}
+    \scriptsize
+    \begin{block}{Regla de orden}
+      Regla base: \(\rho_i=\frac{tr_i}{p_i}\). Desempate: \(h_i=ts_i-tr_i\).
+      \begin{enumerate}
+        \setlength{\itemsep}{0.15em}
+        \item Ordenar por \(\rho_i\) ascendente.
+        \item Si empatan, ordenar por \(h_i\) ascendente.
+        \item Si vuelven a empatar, conservar el menor \'indice.
+      \end{enumerate}
+      \centering
+      \(\frac{tr}{p}\) balancea duraci\'on del riego y castigo por retraso.
+      
+      \medskip
+      \textbf{Complejidad:} \(T_{\texttt{roV}}(n)=\Theta(n\log n)\).
+    \end{block}
 
     \column{0.50\textwidth}
     \tiny
-    \begin{block}{Pseudoc\'odigo resumido}
-      \begin{tabular}{@{}l@{}}
-        \textbf{roV}(tablones) \\
-        \quad \(orden\gets[0,1,\dots,n-1]\) \\
-        \quad ordenar\((orden,\ comparar)\) \\
-        \quad retornar evaluar\_orden\((tablones,orden)\) \\
-        \\
-        \textbf{comparar}(\(i,j\)) \\
-        \quad si \(tr_i p_j\neq tr_j p_i\), usar producto cruzado \\
-        \quad si empatan, comparar \(ts_i-tr_i\) \\
-        \quad si empatan otra vez, comparar \'indice \\
-      \end{tabular}
+    \begin{block}{Implementaci\'on resumida}
+      \begin{itemize}
+        \item Construir \(orden=[0,1,\dots,n-1]\).
+        \item Ordenar los \'indices con \texttt{sort}.
+        \item Comparaci\'on principal por producto cruzado: \(tr_i p_j < tr_j p_i\).
+        \item Si empatan, comparar holgura \(ts_i-tr_i\).
+        \item Si vuelven a empatar, conservar el menor \'indice.
+      \end{itemize}
     \end{block}
   \end{columns}
 \end{frame}
@@ -251,7 +369,7 @@
     \end{block}
 
     \begin{alertblock}{Lectura}
-      La bater\'ia manual confirma que el voraz puede fallar de forma clara incluso en instancias peque\~nas.
+      La bater\'ia manual confirma fallas claras del voraz incluso en instancias peque\~nas.
     \end{alertblock}
   \end{columns}
 \end{frame}
@@ -355,15 +473,16 @@
 \begin{frame}{Conclusiones}
   \small
   \begin{block}{Mensaje central}
-    El algoritmo voraz \texttt{roV} es una heur\'istica r\'apida y razonable, pero no un m\'etodo exacto para el problema general.
+    No existe una estrategia universalmente mejor: cada enfoque responde a una necesidad distinta de exactitud y costo computacional.
   \end{block}
 
   \begin{enumerate}
-    \item \textbf{Teor\'ia:} hay subestructura \'optima, pero no propiedad de escogencia voraz.
-    \item \textbf{Complejidad:} \(\Theta(n\log n)\) frente a \(O(n!\,n)\) y \(O(n2^n)\) de los m\'etodos exactos.
-    \item \textbf{Simulaci\'on:} el criterio funciona mejor en perfiles tensos y empeora con mucha holgura.
+    \item \textbf{Fuerza bruta:} garantiza el \'optimo y sirve como referencia exacta, pero su costo factorial la limita a \(n\) peque\~no.
+    \item \textbf{Programaci\'on din\'amica:} tambi\'en es exacta y mejora dr\'asticamente la escalabilidad hasta instancias moderadas.
+    \item \textbf{Voraz:} \(\Theta(n\log n)\), muy r\'apido, pero sin garant\'ia de costo \'optimo general.
+    \item \textbf{Teor\'ia + evidencia:} el voraz acierta mejor cuando domina el riesgo de tardanza y falla m\'as cuando la holgura y \(rp\) pesan m\'as.
     \item \textbf{Selecci\'on final:} entre las variantes probadas, \(\frac{tr}{p}\) con desempate por \(ts-tr\) fue la m\'as robusta.
-    \item \textbf{Uso recomendado:} si se requiere garant\'ia de costo \'optimo, usar PD; si se requiere rapidez, usar el voraz.
+    \item \textbf{Uso recomendado:} si se necesita exactitud, usar PD; si se necesita rapidez inmediata, usar el voraz.
   \end{enumerate}
 \end{frame}
 

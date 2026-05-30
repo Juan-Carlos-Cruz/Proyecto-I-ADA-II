@@ -14,30 +14,32 @@ body {
   font-family: var(--font-sans);
   color: var(--text-primary);
   background:
-    radial-gradient(circle at top left, rgba(244, 228, 181, 0.9), transparent 32%),
-    radial-gradient(circle at right 15% top 10%, rgba(122, 154, 71, 0.18), transparent 28%),
-    linear-gradient(160deg, var(--bg-page) 0%, #e9dfcf 42%, var(--bg-page-deep) 100%);
+    linear-gradient(160deg, #edf3e3 0%, #e6e3d6 44%, #d7c9ae 100%);
 }
 
 body::before,
 body::after {
   content: "";
   position: fixed;
-  inset: auto auto 8% 4%;
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  background: rgba(78, 122, 40, 0.08);
-  filter: blur(10px);
   pointer-events: none;
   z-index: 0;
 }
 
+body::before {
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 245, 0.00), rgba(250, 247, 239, 0.00)),
+    url("../images/cultivo-riego-bg-photo.png") center center / cover no-repeat;
+  opacity: 0.56;
+}
+
 body::after {
-  inset: 9% 6% auto auto;
-  width: 180px;
-  height: 180px;
-  background: rgba(185, 130, 54, 0.1);
+  inset: auto auto 5% 4%;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: rgba(78, 122, 40, 0.08);
+  filter: blur(22px);
 }
 
 .app {
